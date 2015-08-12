@@ -148,12 +148,31 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
                 }
                 for(int i = 0 ; i < mClientIp.size() ; i ++){
                     MORTNetworkData networkData = mGson.fromJson(data, MORTNetworkData.class);
-                    if(networkData.getType().equals(MORTNetworkData.DEVICE_INFO_CAMERA)){
-                        mCameraClient.sendCameraData(data, getClientAddress(i));
-                        Log.e(TAG, "MORTNetworkData.DEVICE_INFO_CAMERA = " + networkData.toString());
-                    }else if(networkData.getType().equals(MORTNetworkData.DEVICE_INFO_SENSOR)){
-                        mCameraClient.sendSensorData(data, getClientAddress(i));
-                        Log.e(TAG, "MORTNetworkData.DEVICE_INFO_SENSOR = " + networkData.toString());
+                    if(networkData != null && networkData.getType() != null){
+                        switch(networkData.getType()){
+                        case CONNECTION:
+
+                            break;
+
+                        case DEVICE:
+                            if(networkData.getDevice() != null){
+                                switch (networkData.getDevice()){
+                                    case CAMERA:
+                                        mCameraClient.sendCameraData(data, getClientAddress(i));
+                                        break;
+
+                                    case SENSOR:
+                                        mCameraClient.sendSensorData(data, getClientAddress(i));
+                                        break;
+                                }
+                                Log.e(TAG, "MORTNetworkData.DEVICE = " + networkData.toString());
+                            }
+                            break;
+
+                        case OPERATION:
+
+                            break;
+                        }
                     }
                     networkData = null;
                 }

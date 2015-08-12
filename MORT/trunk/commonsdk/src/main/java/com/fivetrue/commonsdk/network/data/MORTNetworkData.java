@@ -1,59 +1,75 @@
 package com.fivetrue.commonsdk.network.data;
 
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.fivetrue.commonsdk.control.data.BaseMORTControlData;
+public class MORTNetworkData implements Parcelable {
 
-import java.net.Socket;
+    public static enum Type{
+        CONNECTION,
+        DEVICE,
+        OPERATION,
+    }
 
-/**
- * Created by Fivetrue on 2015-03-22.
- */
-public class MORTNetworkData implements Parcelable{
+    public static enum Connection{
+        CONNECTED,
+        DISCONNECTED
+    }
 
-    public static final String TYPE_CONNECTED = "connected";
-    public static final String TYPE_CONTROLVIEW = "controlview";
-    public static final String TYPE_OPERATION = "operation";
-    public static final String TYPE_DISCONNECT = "disconnect";
+    public static enum Device{
+        CAMERA,
+        SENSOR
+    }
 
-    public static final String DEVICE_INFO_CAMERA = "device_info_camera";
-    public static final String DEVICE_INFO_SENSOR = "device_info_sensor";
+    public static enum Operation{
+        CENTER_LED_ON,
+        CENTER_LED_OFF,
+        BUZZER_ON,
+        SERVO_MORTOR,
+        RIGHT_MORTOR_ON,
+        RIGHT_MORTOR_OFF,
+        LEFT_MORTOR_ON,
+        LEFT_MORTOR_OFF,
+    }
 
-    public static final String ACTION_CHECK_CONTROLVIEW = "check_control";
-    public static final String ACTION_ADD_CONTROL = "add_control";
-    public static final String ACTION_DELETE_CONTROL = "del_control";
 
-    public static final String CONTROLVIEW_HANDLE = "handle";
-    public static final String CONTROLVIEW_ENGINE = "engine";
-    public static final String CONTROLVIEW_CROCK = "crock";
-
-    public static final String OPERATION_CENTER_LED = "center_led";
-    public static final String OPERATION_BUZZER = "buzzer";
-    public static final String OPERATION_SERVO = "servo";
-    public static final String OPERATION_MOTOR = "motor";
-
-    private String type = null;
-    private String action = null;
+    private Type type = null;
+    private Connection connection = null;
+    private Device device = null;
+    private Operation operation = null;
     private String message = null;
     private String extra = null;
-    private BaseMORTControlData control = null;
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Type type) {
         this.type = type;
     }
 
-    public String getAction() {
-        return action;
+    public Connection getConnection() {
+        return connection;
     }
 
-    public void setAction(String action) {
-        this.action = action;
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public Device getDevice() {
+        return device;
+    }
+
+    public void setDevice(Device device) {
+        this.device = device;
+    }
+
+    public Operation getOperation() {
+        return operation;
+    }
+
+    public void setOperation(Operation operation) {
+        this.operation = operation;
     }
 
     public String getMessage() {
@@ -76,17 +92,20 @@ public class MORTNetworkData implements Parcelable{
 
     public MORTNetworkData(MORTNetworkData data){
         this.type = data.type;
-        this.action = data.action;
+        this.device = data.device;
+        this.connection = data.connection;
+        this.operation = data.operation;
         this.message = data.message;
         this.extra = data.extra;
     }
 
     public MORTNetworkData(Parcel in){
-        type = in.readString();
-        action = in.readString();
+        type = Type.valueOf(in.readString());
+        connection = Connection.valueOf(in.readString());
+        device = Device.valueOf(in.readString());
+        operation = Operation.valueOf(in.readString());
         message = in.readString();
         extra = in.readString();
-        control = in.readParcelable(BaseMORTControlData.class.getClassLoader());
     }
 
     @Override
@@ -96,11 +115,12 @@ public class MORTNetworkData implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(type);
-        dest.writeString(action);
+        dest.writeString(type.name());
+        dest.writeString(connection.name());
+        dest.writeString(device.name());
+        dest.writeString(operation.name());
         dest.writeString(message);
         dest.writeString(extra);
-        dest.writeParcelable(control, flags);
     }
 
     static Creator<MORTNetworkData> CREATOR = new Creator<MORTNetworkData>() {
@@ -118,11 +138,12 @@ public class MORTNetworkData implements Parcelable{
     @Override
     public String toString() {
         return "MORTNetworkData{" +
-                "type='" + type + '\'' +
-                ", action='" + action + '\'' +
+                "type=" + type +
+                ", connection=" + connection +
+                ", device=" + device +
+                ", operation=" + operation +
                 ", message='" + message + '\'' +
                 ", extra='" + extra + '\'' +
-                ", control=" + control +
                 '}';
     }
 }

@@ -1,1 +1,1 @@
-include ':app',':iOIOLibAccessory',':iOIOLibAndroid', ':iOIOLibAndroidDevice', ':iOIOLibBT', ':commonsdk'
+include ':mort',':iOIOLibAccessory',':iOIOLibAndroid', ':iOIOLibAndroidDevice', ':iOIOLibBT', ':commonsdk', ':remote'

@@ -115,7 +115,7 @@ public class MORTClient{
                             Gson gson = new Gson();
                             if(out != null){
                                 data = new MORTNetworkData();
-                                data.setType(MORTNetworkData.TYPE_CONNECTED);
+                                data.setType(MORTNetworkData.Type.CONNECTION);
                                 String json = gson.toJson(data);
                                 Log.e(TAG, "Object to json : " + json);
                                 out.writeUTF(json);
@@ -268,7 +268,7 @@ public class MORTClient{
                         Gson gson = new Gson();
                         if(out != null){
                             data = new MORTNetworkData();
-                            data.setType(MORTNetworkData.TYPE_CONNECTED);
+                            data.setType(MORTNetworkData.Type.CONNECTION);
                             String json = gson.toJson(data);
                             Log.e(TAG, "Object to json : " + json);
                             out.writeUTF(json);

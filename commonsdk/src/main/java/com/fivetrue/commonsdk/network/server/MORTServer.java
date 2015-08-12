@@ -109,7 +109,7 @@ public class MORTServer extends Thread {
                             received = in.readUTF();
                         }catch (EOFException e){
                             e.printStackTrace();
-                            onDisconnected(socket, null);
+                            onConnection(socket, null, serverIpAdress);
                             break;
                         }
                         Log.d(TAG, "in.readUTF() from = " + received);
@@ -117,15 +117,19 @@ public class MORTServer extends Thread {
                         if (received != null) {
                             data = mGson.fromJson(received, MORTNetworkData.class);
                         }
-                        if (data != null) {
-                            if (data.getType().equals(MORTNetworkData.TYPE_CONNECTED)) {
-                                onConnected(socket, data, serverIpAdress);
-                            } else if (data.getType().equals(MORTNetworkData.TYPE_OPERATION)) {
-                                onRecevedOperation(socket, data);
-                            } else if (data.getType().equals(MORTNetworkData.TYPE_CONTROLVIEW)) {
-                                onReceivedControlView(socket, data);
-                            }else if (data.getType().equals(MORTNetworkData.TYPE_DISCONNECT)) {
-                                onDisconnected(socket, data);
+                        if (data != null && data.getType() != null) {
+                            switch(data.getType()){
+                                case CONNECTION:
+                                    onConnection(socket, data, serverIpAdress);
+                                    break;
+                                case OPERATION:
+                                    onRecevedOperation(socket, data);
+                                    break;
+                                case DEVICE:
+                                    onReceivedControlView(socket, data);
+                                    break;
+
+
                             }
                         }
                     }catch (IOException ex){
@@ -148,16 +152,23 @@ public class MORTServer extends Thread {
         }
     }
 
-    private synchronized  void onConnected(Socket socket, MORTNetworkData data, String serverIpAddr) throws IOException {
-        data.setExtra(serverIpAddr);
-        if(mNetwork != null){
-            mNetwork.onConnected(socket, data);
-        }
-    }
-
-    private synchronized  void onDisconnected(Socket socket, MORTNetworkData data){
-        if(mNetwork != null){
-            mNetwork.onDisconnected(socket, data);
+    private synchronized  void onConnection(Socket socket, MORTNetworkData data, String serverIpAddr) throws IOException {
+        if(data != null){
+            data.setExtra(serverIpAddr);
+            if(data.getConnection() != null && mNetwork != null){
+                switch (data.getConnection()){
+                    case CONNECTED:
+                        mNetwork.onConnected(socket, data);
+                        break;
+                    case DISCONNECTED:
+                        mNetwork.onDisconnected(socket, data);
+                        break;
+                }
+            }
+        }else{
+            if(mNetwork != null){
+                mNetwork.onDisconnected(socket, data);
+            }
         }
     }
 }

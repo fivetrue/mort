@@ -73,27 +73,42 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         @Override
         public void onRecevedOperation(final MORTNetworkData data) throws RemoteException {
             Log.e(TAG, "onRecevedOperation");
-            if(data.getAction().equals(MORTNetworkData.OPERATION_CENTER_LED)){
-                mDeviceControlLooper.setOnCenterLed(!mDeviceControlLooper.isCenterLed());
-            }else if(data.getAction().equals(MORTNetworkData.OPERATION_BUZZER)){
-                mDeviceControlLooper.setOnBuzzer(HRZ+=10, 300);
-            }else if(data.getAction().equals(MORTNetworkData.OPERATION_SERVO)){
-                if(data.getExtra() != null){
-                    mDeviceControlLooper.setServoMotorValue(Float.parseFloat(data.getExtra()));
+            if(data != null && data.getOperation() != null){
+                switch(data.getOperation()){
+                    case CENTER_LED_ON:
+                        mDeviceControlLooper.setOnCenterLed(true);
+                        break;
+
+                    case CENTER_LED_OFF:
+                        mDeviceControlLooper.setOnCenterLed(false);
+                        break;
+
+                    case BUZZER_ON:
+                        mDeviceControlLooper.setOnBuzzer(HRZ+=10, 300);
+                        break;
+
+                    case SERVO_MORTOR:
+                        if(data.getExtra() != null){
+                            mDeviceControlLooper.setServoMotorValue(Float.parseFloat(data.getExtra()));
+                        }
+                        break;
+
+                    case LEFT_MORTOR_ON:
+
+                        break;
+
+                    case LEFT_MORTOR_OFF:
+
+                        break;
+
+                    case RIGHT_MORTOR_ON:
+
+                        break;
+
+                    case RIGHT_MORTOR_OFF:
+
+                        break;
                 }
-            }else if(data.getAction().equals(MORTNetworkData.OPERATION_MOTOR)){
-                mDeviceControlLooper.setMotorOn(!mDeviceControlLooper.isMotor());
-            }
-            if(data != null){
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        Toast.makeText(BaseActivity.this, "onRecevedOperation = " + data.toString(), Toast.LENGTH_SHORT).show();;
-//                        Log.e(TAG, "onOperation = " + data.toString());
-
-                    }
-                });
             }
         }
 
@@ -272,7 +287,8 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
             if(screen != null && !screen.isRecycled()){
                 try {
                     MORTNetworkData network = new MORTNetworkData();
-                    network.setType(MORTNetworkData.DEVICE_INFO_CAMERA);
+                    network.setType(MORTNetworkData.Type.DEVICE);
+                    network.setDevice(MORTNetworkData.Device.CAMERA);
                     network.setMessage(BitmapConverter.BitmapToBase64String(screen, 50));
                     String json = mGson.toJson(network);
                     mNetworkService.sendBroadcastToClient(json);
@@ -290,7 +306,8 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         if(event != null && mNetworkService != null){
             if(event.sensor.getType() == Sensor.TYPE_GRAVITY){
                 MORTNetworkData network = new MORTNetworkData();
-                network.setType(MORTNetworkData.DEVICE_INFO_SENSOR);
+                network.setType(MORTNetworkData.Type.DEVICE);
+                network.setDevice(MORTNetworkData.Device.SENSOR);
                 network.setMessage(mGson.toJson(event));
                 String json = mGson.toJson(network);
                 try {

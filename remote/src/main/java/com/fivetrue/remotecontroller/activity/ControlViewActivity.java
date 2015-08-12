@@ -1,11 +1,13 @@
 package com.fivetrue.remotecontroller.activity;
 
+import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.view.animation.TranslateAnimation;
 
 import com.fivetrue.commonsdk.network.client.MORTClientImpl;
 import com.fivetrue.commonsdk.network.constants.MORTNetworkConstants;
@@ -66,13 +68,11 @@ public class ControlViewActivity extends BaseActivity implements MORTClientImpl 
         getSupportFragmentManager().beginTransaction()
                 .add(mLayoutCarInfo.getId(), mCarStateFragment, mCarStateFragment.TAG)
                 .commit();
-
     }
 
     private void initData(){
         mMortNetworkData = new MORTNetworkData();
-        mMortNetworkData.setType(MORTNetworkData.TYPE_CONTROLVIEW);
-        mMortNetworkData.setAction(MORTNetworkData.ACTION_CHECK_CONTROLVIEW);
+        mMortNetworkData.setType(MORTNetworkData.Type.OPERATION);
         mDeviceInfoServer = new MORTDeviceInfoServer(onReceivedMortDeivceInfoListener);
         mDeviceInfoServer.onStartCameraServer();
         mDeviceInfoServer.onStartSensorServer();

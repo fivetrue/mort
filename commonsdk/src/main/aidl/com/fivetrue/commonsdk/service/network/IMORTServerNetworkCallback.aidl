@@ -1,5 +1,5 @@
 // IControlServerCallback.aidl
-package com.fivetrue.commonsdk.service;
+package com.fivetrue.commonsdk.service.network;
 
 // Declare any non-default types here with import statements
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
@@ -11,5 +11,5 @@ oneway interface IMORTServerNetworkCallback {
      */
       void onRecevedOperation(out MORTNetworkData data);
 
-      void onReceivedControlView(out MORTNetworkData data);
+      void onReceivedDeviceInfo(out MORTNetworkData data);
 }

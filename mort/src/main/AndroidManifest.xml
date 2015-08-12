@@ -31,7 +31,7 @@
                 android:resource="@xml/device_filter" />
         </activity>
 
-        <service android:name="com.fivetrue.commonsdk.service.MORTServerNetworkService"
+        <service android:name="com.fivetrue.commonsdk.service.network.MORTServerNetworkService"
             android:exported="true" />
 
         <!--<service android:name="com.fivetrue.commonsdk.service.MORTDeviceControlService"-->

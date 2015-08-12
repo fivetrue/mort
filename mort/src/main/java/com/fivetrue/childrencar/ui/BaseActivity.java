@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -20,9 +19,9 @@ import android.widget.Toast;
 
 import com.fivetrue.childrencar.R;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.fivetrue.commonsdk.service.IMORTServerNetworkCallback;
-import com.fivetrue.commonsdk.service.IMORTServerNetworkService;
-import com.fivetrue.commonsdk.service.MORTServerNetworkService;
+import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.IMORTServerNetworkService;
+import com.fivetrue.commonsdk.service.network.MORTServerNetworkService;
 import com.fivetrue.commonsdk.utils.BitmapConverter;
 import com.fivetrue.commonsdk.utils.ScreenTaker;
 import com.google.gson.Gson;
@@ -113,16 +112,17 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         }
 
         @Override
-        public void onReceivedControlView(final MORTNetworkData data) throws RemoteException {
-            Log.e(TAG, "onReceivedControlView");
+        public void onReceivedDeviceInfo(final MORTNetworkData data) throws RemoteException {
+            Log.e(TAG, "onReceivedDeviceInfo");
             if(data != null){
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(BaseActivity.this, "onReceivedControlView = " + data.toString(), Toast.LENGTH_SHORT).show();;
+                        Toast.makeText(BaseActivity.this, "onReceivedDeviceInfo = " + data.toString(), Toast.LENGTH_SHORT).show();;
                     }
                 });
             }
+
         }
     };
 

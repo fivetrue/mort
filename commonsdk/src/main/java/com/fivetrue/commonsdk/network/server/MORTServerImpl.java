@@ -13,10 +13,7 @@ public interface MORTServerImpl {
 
     public void onReceiveOperation(Socket socket, MORTNetworkData data);
 
-    public void onReceiveControlView(Socket socket, MORTNetworkData data);
+    public void onReceiveDeviceInfo(Socket socket, MORTNetworkData data);
 
-    public void onConnected(Socket socket, MORTNetworkData data);
-
-    public void onDisconnected(Socket socket, MORTNetworkData data);
-
+    public void onReceiveConnection(Socket socket, MORTNetworkData data, String serverAddr);
 }

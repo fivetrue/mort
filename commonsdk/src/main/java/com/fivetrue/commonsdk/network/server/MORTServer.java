@@ -6,16 +6,12 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.google.gson.Gson;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 
 /**
  * Created by Fivetrue on 2015-03-20.
@@ -31,7 +27,6 @@ public class MORTServer extends Thread {
     private int mPort = INVALID_VALUE;
     private boolean isRun = false;
     private MORTServerImpl mNetwork = null;
-    private Gson mGson = new Gson();
 
     public MORTServer(Context context, int port){
         mContext = context;
@@ -115,7 +110,7 @@ public class MORTServer extends Thread {
                         Log.d(TAG, "in.readUTF() from = " + received);
                         MORTNetworkData data = null;
                         if (received != null) {
-                            data = mGson.fromJson(received, MORTNetworkData.class);
+                            data = MORTNetworkData.fromJson(received);
                         }
                         if (data != null && data.getType() != null) {
                             switch(data.getType()){
@@ -126,7 +121,7 @@ public class MORTServer extends Thread {
                                     onRecevedOperation(socket, data);
                                     break;
                                 case DEVICE:
-                                    onReceivedControlView(socket, data);
+                                    onReceivedDeviceInfo(socket, data);
                                     break;
 
 
@@ -146,29 +141,15 @@ public class MORTServer extends Thread {
         }
     }
 
-    private synchronized  void onReceivedControlView(Socket socket, MORTNetworkData data){
+    private synchronized  void onReceivedDeviceInfo(Socket socket, MORTNetworkData data){
         if(mNetwork != null){
-            mNetwork.onReceiveControlView(socket, data);
+            mNetwork.onReceiveDeviceInfo(socket, data);
         }
     }
 
     private synchronized  void onConnection(Socket socket, MORTNetworkData data, String serverIpAddr) throws IOException {
-        if(data != null){
-            data.setExtra(serverIpAddr);
-            if(data.getConnection() != null && mNetwork != null){
-                switch (data.getConnection()){
-                    case CONNECTED:
-                        mNetwork.onConnected(socket, data);
-                        break;
-                    case DISCONNECTED:
-                        mNetwork.onDisconnected(socket, data);
-                        break;
-                }
-            }
-        }else{
-            if(mNetwork != null){
-                mNetwork.onDisconnected(socket, data);
-            }
+        if(mNetwork != null){
+            mNetwork.onReceiveConnection(socket, data, serverIpAddr);
         }
     }
 }

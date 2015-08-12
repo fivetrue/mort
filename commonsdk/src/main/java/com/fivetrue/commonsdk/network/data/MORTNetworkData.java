@@ -3,6 +3,8 @@ package com.fivetrue.commonsdk.network.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 public class MORTNetworkData implements Parcelable {
 
     public static enum Type{
@@ -32,6 +34,7 @@ public class MORTNetworkData implements Parcelable {
         LEFT_MORTOR_OFF,
     }
 
+    private static final Gson sGson = new Gson();
 
     private Type type = null;
     private Connection connection = null;
@@ -90,6 +93,11 @@ public class MORTNetworkData implements Parcelable {
 
     public MORTNetworkData(){};
 
+    public static MORTNetworkData fromJson(String json){
+        MORTNetworkData data = sGson.fromJson(json, MORTNetworkData.class);
+        return data;
+    }
+
     public MORTNetworkData(MORTNetworkData data){
         this.type = data.type;
         this.device = data.device;
@@ -106,6 +114,10 @@ public class MORTNetworkData implements Parcelable {
         operation = Operation.valueOf(in.readString());
         message = in.readString();
         extra = in.readString();
+    }
+
+    public String convertJson(){
+        return sGson.toJson(this);
     }
 
     @Override

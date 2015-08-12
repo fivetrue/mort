@@ -1,8 +1,8 @@
 // IControlServer.aidl
-package com.fivetrue.commonsdk.service;
+package com.fivetrue.commonsdk.service.network;
 
 // Declare any non-default types here with import statements
-import com.fivetrue.commonsdk.service.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
 
 interface IMORTServerNetworkService {
     /**

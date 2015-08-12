@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.service;
+package com.fivetrue.commonsdk.service.network;
 
 import android.app.Service;
 import android.content.Context;
@@ -14,7 +14,8 @@ import com.fivetrue.commonsdk.network.constants.MORTNetworkConstants;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
 import com.fivetrue.commonsdk.network.server.MORTServer;
 import com.fivetrue.commonsdk.network.server.MORTServerImpl;
-import com.google.gson.Gson;
+import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.IMORTServerNetworkService;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     public static final String ACTION_BIND = "com.fivetrue.commsdk.service.control.bind";
     private static final int INVALID_VALUE = -1;
 
-    private ArrayList<String> mClientIp = new ArrayList<>();
+    private ArrayList<String> mClientIps = new ArrayList<>();
     private MORTDeviceInfoClient mCameraClient = null;
 
     public static void bind(Context context, ServiceConnection conn){
@@ -44,45 +45,8 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     }
     private MORTServer mMortServer = null;
     private MORTNetworkData mDraftData = null;
-    private Gson mGson = new Gson();
-
-//    private IMORTDeviceMonitorService mMonitorService = null;
-//    private IMORTDeviceControlService mControlService = null;
 
     private RemoteCallbackList<IMORTServerNetworkCallback> mCallback = new RemoteCallbackList<>();
-
-//    private ServiceConnection mConnMonitor = new ServiceConnection() {
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            if(service != null){
-//                mMonitorService = IMORTDeviceMonitorService.Stub.asInterface(service);
-//            }
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//            if(mMonitorService != null){
-//                mMonitorService = null;
-//            }
-//        }
-//    };
-//
-//    private ServiceConnection mConnControl = new ServiceConnection() {
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            if(service != null){
-//                mControlService = IMORTDeviceControlService.Stub.asInterface(service);
-//            }
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//            if(mControlService != null){
-//                mControlService = null;
-//            }
-//
-//        }
-//    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -142,12 +106,12 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
 
         @Override
         public void sendBroadcastToClient(final String data) throws RemoteException {
-            if(mClientIp != null){
+            if(mClientIps != null){
                 if(mCameraClient == null){
                     mCameraClient = new MORTDeviceInfoClient();
                 }
-                for(int i = 0 ; i < mClientIp.size() ; i ++){
-                    MORTNetworkData networkData = mGson.fromJson(data, MORTNetworkData.class);
+                for(int i = 0 ; i < mClientIps.size() ; i ++){
+                    MORTNetworkData networkData = MORTNetworkData.fromJson(data);
                     if(networkData != null && networkData.getType() != null){
                         switch(networkData.getType()){
                         case CONNECTION:
@@ -203,60 +167,64 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     }
 
     @Override
-    public void onReceiveControlView(Socket socket, MORTNetworkData data) {
-        Log.e(TAG, "onReceiveControlView = " + data.toString());
-        onControlView(socket, data);
-        if(mCallback != null){
-            int count = mCallback.beginBroadcast();
-            try {
-                for(int i = 0 ; i < count ; i ++){
-                    mCallback.getBroadcastItem(i).onReceivedControlView(data);
+    public void onReceiveDeviceInfo(Socket socket, MORTNetworkData data) {
+        if(data != null && data.getDevice() != null){
+            Log.e(TAG, "onReceiveControlView = " + data.toString());
+            onDeviceInfo(socket, data);
+            if(mCallback != null){
+                int count = mCallback.beginBroadcast();
+                try {
+                    for(int i = 0 ; i < count ; i ++){
+                        mCallback.getBroadcastItem(i).onReceivedDeviceInfo(data);
+                    }
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            mCallback.finishBroadcast();
-        }
-    }
-
-    @Override
-    public void onConnected(Socket socket, MORTNetworkData data) {
-        //Conncected 되었다는 패킷 전달.
-        if(socket != null && data != null){
-            addClientAddress(socket.getInetAddress().getHostAddress());
-            DataOutputStream out = null;
-            try {
-                out = new DataOutputStream(socket.getOutputStream());
-                out.writeUTF(mGson.toJson(data));
-            } catch (IOException e) {
-                e.printStackTrace();
+                mCallback.finishBroadcast();
             }
         }
     }
 
     @Override
-    public void onDisconnected(Socket socket, MORTNetworkData data) {
-        if(socket != null){
-            removeClientAddress(socket.getInetAddress().getHostAddress());
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    public void onReceiveConnection(Socket socket, MORTNetworkData data, String serverAddr) {
+        if(socket != null && data != null && data.getConnection() != null){
+            switch(data.getConnection()){
+                case CONNECTED:
+                    addClientAddress(socket.getInetAddress().getHostAddress());
+                    DataOutputStream out = null;
+                    try {
+                        out = new DataOutputStream(socket.getOutputStream());
+                        out.writeUTF(data.convertJson());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
+                case DISCONNECTED:
+                    if(socket != null){
+                        removeClientAddress(socket.getInetAddress().getHostAddress());
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
             }
+
         }
     }
-
     synchronized private void addClientAddress(String ip){
-        mClientIp.add(ip);
+        mClientIps.add(ip);
     }
 
     synchronized  private void removeClientAddress(String ip){
-        mClientIp.remove(ip);
+        mClientIps.remove(ip);
     }
 
     synchronized  private String getClientAddress(int index){
-        if(mClientIp.size() > index){
-            return mClientIp.get(index);
+        if(mClientIps.size() > index){
+            return mClientIps.get(index);
         }
         return null;
     }
@@ -264,36 +232,22 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
 
     private void onOperation(Socket socket, final MORTNetworkData data){
         if(socket != null && data != null){
-//            Log.e(TAG, "onOperation = " + data.toString());
-//            if(data.getAction().equals(MORTNetworkData.OPERATION_LIGHT_ON)){
-//                try {
-//                    mControlService.writeDigitalSensorValue(0, true);
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-//            }else if(data.getAction().equals(MORTNetworkData.OPERATION_LIGHT_OFF)){
-//                try {
-//                    mControlService.writeDigitalSensorValue(0, false);
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-//            }
             DataOutputStream out = null;
             try {
                 out = new DataOutputStream(socket.getOutputStream());
-                out.writeUTF(mGson.toJson(data));
+                out.writeUTF(data.convertJson());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void onControlView(Socket socket, MORTNetworkData data){
+    private void onDeviceInfo(Socket socket, MORTNetworkData data){
         if(socket != null && data != null){
             DataOutputStream out = null;
             try {
                 out = new DataOutputStream(socket.getOutputStream());
-                out.writeUTF(mGson.toJson(data));
+                out.writeUTF(data.convertJson());
             } catch (IOException e) {
                 e.printStackTrace();
             }

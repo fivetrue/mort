@@ -39,15 +39,12 @@ public class MORTClient{
     private Activity mActivity = null;
     private Socket mSocket = null;
     private MORTClientNetworkListener mMortClientNetworkListener = null;
-    private ProgressDialog mProgressDialog = null;
     private SharedPrefrenceManager mPref = null;
 
     private DeviceSearchThread[] mDeviceSearchTasks = new DeviceSearchThread[SEARCH_TASK];
 
-    public MORTClient(Activity activity){
-        mActivity = activity;
-        mPref = new SharedPrefrenceManager(activity, TAG);
-        mProgressDialog = new ProgressDialog(mActivity);
+    public MORTClient(Context context){
+        mPref = new SharedPrefrenceManager(context, TAG);
     }
 
     private MORTClientNetworkListener mortClientNetworkListener = new MORTClientNetworkListener() {
@@ -71,7 +68,6 @@ public class MORTClient{
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        dismissProgressDialog();
                         mMortClientNetworkListener.onConnected(socket, ipAddress, data);
                     }
                 });
@@ -95,7 +91,6 @@ public class MORTClient{
      * MortDevice 찾기
      */
     public void searchMortDevice(){
-        showProgressDialog("검색", "디바이스 찾는 중..");
         final String lastIp = mPref.loadStringPref(LAST_CONNECTED_SERVER, null);
         if(lastIp != null){
             new Thread(new Runnable() {
@@ -147,22 +142,6 @@ public class MORTClient{
             final String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
             mDeviceSearchTasks[i] = new DeviceSearchThread(i, ip, mortClientNetworkListener);
             mDeviceSearchTasks[i].start();
-        }
-    }
-
-    public void showProgressDialog(String title, String message){
-        if(mActivity != null && !mProgressDialog.isShowing()){
-            mProgressDialog.setTitle(title);
-            mProgressDialog.setMessage(message);
-            mProgressDialog.show();
-        }
-    }
-
-    public void dismissProgressDialog(){
-        if(mProgressDialog != null && mProgressDialog.isShowing()){
-            if(mProgressDialog.getWindow() != null){
-                mProgressDialog.dismiss();
-            }
         }
     }
 

@@ -1,8 +1,8 @@
 // IControlServer.aidl
-package com.fivetrue.commonsdk.service.network;
+package com.fivetrue.commonsdk.service.network.server;
 
 // Declare any non-default types here with import statements
-import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkCallback;
 
 interface IMORTServerNetworkService {
     /**
@@ -11,7 +11,5 @@ interface IMORTServerNetworkService {
      */
     void registerCallback(IMORTServerNetworkCallback callback);
     void unregisterCallback(IMORTServerNetworkCallback callback);
-    void responseOperationData(String response);
-    void responseControlViewData(String response);
     void sendBroadcastToClient(String data);
 }

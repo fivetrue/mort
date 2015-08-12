@@ -9,25 +9,13 @@ import com.fivetrue.commonsdk.network.client.MORTClientImpl;
 
 
 
-abstract public class BaseActivity extends FragmentActivity implements MORTClient.MORTClientNetworkListener{
+abstract public class BaseActivity extends FragmentActivity{
 
-    private static MORTClient mMortClient = null;
     private ProgressDialog mProgress = null;
-
-    protected void searchMortDevice(){
-        mMortClient.searchMortDevice();
-    }
-    protected void sendData(MORTClientImpl client){
-        mMortClient.sendData(client);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(mMortClient == null){
-            mMortClient = new MORTClient(this);
-            mMortClient.setMORTClientNetworkListener(this);
-        }
         mProgress = new ProgressDialog(this);
     }
 

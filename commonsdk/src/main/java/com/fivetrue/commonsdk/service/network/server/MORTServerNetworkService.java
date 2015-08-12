@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.service.network;
+package com.fivetrue.commonsdk.service.network.server;
 
 import android.app.Service;
 import android.content.Context;
@@ -9,13 +9,12 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.fivetrue.commonsdk.network.client.MORTDeviceInfoClient;
+import com.fivetrue.commonsdk.device.data.DeviceInfo;
+import com.fivetrue.commonsdk.network.server.MORTDeviceInfoSender;
 import com.fivetrue.commonsdk.network.constants.MORTNetworkConstants;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
 import com.fivetrue.commonsdk.network.server.MORTServer;
 import com.fivetrue.commonsdk.network.server.MORTServerImpl;
-import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
-import com.fivetrue.commonsdk.service.network.IMORTServerNetworkService;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -31,7 +30,7 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     private static final int INVALID_VALUE = -1;
 
     private ArrayList<String> mClientIps = new ArrayList<>();
-    private MORTDeviceInfoClient mCameraClient = null;
+    private MORTDeviceInfoSender mDeviceInfoSender = null;
 
     public static void bind(Context context, ServiceConnection conn){
         Intent intent = new Intent(context, MORTServerNetworkService.class);
@@ -62,8 +61,6 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
         mMortServer = new MORTServer(this, MORTNetworkConstants.MORT_PORT);
         mMortServer.setNetworkMortImplement(this);
         mMortServer.bind();
-//        MORTDeviceControlService.bind(this, mConnControl);
-//        MORTDeviceMonitorService.bind(this, mConnMonitor);
     }
 
     @Override
@@ -72,8 +69,6 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
         if(mMortServer != null){
             mMortServer.unbind();
         }
-//        MORTDeviceControlService.unbind(this, mConnControl);
-//        MORTDeviceMonitorService.unbind(this, mConnMonitor);
     }
 
     private IBinder mBinder = new IMORTServerNetworkService.Stub(){
@@ -95,20 +90,10 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
         }
 
         @Override
-        public void responseOperationData(String response) throws RemoteException {
-
-        }
-
-        @Override
-        public void responseControlViewData(String response) throws RemoteException {
-
-        }
-
-        @Override
         public void sendBroadcastToClient(final String data) throws RemoteException {
             if(mClientIps != null){
-                if(mCameraClient == null){
-                    mCameraClient = new MORTDeviceInfoClient();
+                if(mDeviceInfoSender == null){
+                    mDeviceInfoSender = new MORTDeviceInfoSender();
                 }
                 for(int i = 0 ; i < mClientIps.size() ; i ++){
                     MORTNetworkData networkData = MORTNetworkData.fromJson(data);
@@ -122,11 +107,11 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
                             if(networkData.getDevice() != null){
                                 switch (networkData.getDevice()){
                                     case CAMERA:
-                                        mCameraClient.sendCameraData(data, getClientAddress(i));
+                                        mDeviceInfoSender.sendCameraData(data, getClientAddress(i));
                                         break;
 
                                     case SENSOR:
-                                        mCameraClient.sendSensorData(data, getClientAddress(i));
+                                        mDeviceInfoSender.sendSensorData(data, getClientAddress(i));
                                         break;
                                 }
                                 Log.e(TAG, "MORTNetworkData.DEVICE = " + networkData.toString());
@@ -168,14 +153,15 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
 
     @Override
     public void onReceiveDeviceInfo(Socket socket, MORTNetworkData data) {
-        if(data != null && data.getDevice() != null){
-            Log.e(TAG, "onReceiveControlView = " + data.toString());
+        if(data != null && data.getMessage() != null){
+            Log.e(TAG, "onReceiveDeviceInfo = " + data.toString());
             onDeviceInfo(socket, data);
+            DeviceInfo deviceInfo = new DeviceInfo(data);
             if(mCallback != null){
                 int count = mCallback.beginBroadcast();
                 try {
                     for(int i = 0 ; i < count ; i ++){
-                        mCallback.getBroadcastItem(i).onReceivedDeviceInfo(data);
+                        mCallback.getBroadcastItem(i).onRecevedDeviceInfo(deviceInfo);
                     }
                 } catch (RemoteException e) {
                     e.printStackTrace();

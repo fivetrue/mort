@@ -18,10 +18,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.fivetrue.childrencar.R;
+import com.fivetrue.commonsdk.device.data.DeviceInfo;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.fivetrue.commonsdk.service.network.IMORTServerNetworkCallback;
-import com.fivetrue.commonsdk.service.network.IMORTServerNetworkService;
-import com.fivetrue.commonsdk.service.network.MORTServerNetworkService;
+import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkService;
+import com.fivetrue.commonsdk.service.network.server.MORTServerNetworkService;
 import com.fivetrue.commonsdk.utils.BitmapConverter;
 import com.fivetrue.commonsdk.utils.ScreenTaker;
 import com.google.gson.Gson;
@@ -112,16 +113,7 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         }
 
         @Override
-        public void onReceivedDeviceInfo(final MORTNetworkData data) throws RemoteException {
-            Log.e(TAG, "onReceivedDeviceInfo");
-            if(data != null){
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(BaseActivity.this, "onReceivedDeviceInfo = " + data.toString(), Toast.LENGTH_SHORT).show();;
-                    }
-                });
-            }
+        public void onRecevedDeviceInfo(DeviceInfo data) throws RemoteException {
 
         }
     };
@@ -289,7 +281,7 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
                     MORTNetworkData network = new MORTNetworkData();
                     network.setType(MORTNetworkData.Type.DEVICE);
                     network.setDevice(MORTNetworkData.Device.CAMERA);
-                    network.setMessage(BitmapConverter.BitmapToBase64String(screen, 50));
+                    network.setExtra(BitmapConverter.BitmapToBase64String(screen, 50));
                     String json = mGson.toJson(network);
                     mNetworkService.sendBroadcastToClient(json);
                     screen.recycle();
@@ -308,7 +300,7 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
                 MORTNetworkData network = new MORTNetworkData();
                 network.setType(MORTNetworkData.Type.DEVICE);
                 network.setDevice(MORTNetworkData.Device.SENSOR);
-                network.setMessage(mGson.toJson(event));
+                network.setExtra(mGson.toJson(event));
                 String json = mGson.toJson(network);
                 try {
                     mNetworkService.sendBroadcastToClient(json);

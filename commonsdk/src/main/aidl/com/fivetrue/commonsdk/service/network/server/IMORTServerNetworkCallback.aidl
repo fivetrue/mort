@@ -1,8 +1,11 @@
 // IControlServerCallback.aidl
-package com.fivetrue.commonsdk.service.network;
+package com.fivetrue.commonsdk.service.network.server;
 
 // Declare any non-default types here with import statements
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
+import com.fivetrue.commonsdk.device.data.Sensor;
+import com.fivetrue.commonsdk.device.data.Camera;
+import com.fivetrue.commonsdk.device.data.DeviceInfo;
 
 oneway interface IMORTServerNetworkCallback {
     /**
@@ -10,6 +13,5 @@ oneway interface IMORTServerNetworkCallback {
      * and return values in AIDL.s
      */
       void onRecevedOperation(out MORTNetworkData data);
-
-      void onReceivedDeviceInfo(out MORTNetworkData data);
+      void onRecevedDeviceInfo(out DeviceInfo data);
 }

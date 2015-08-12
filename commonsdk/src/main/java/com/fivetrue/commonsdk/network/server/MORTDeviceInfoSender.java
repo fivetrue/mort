@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.network.client;
+package com.fivetrue.commonsdk.network.server;
 
 import android.text.TextUtils;
 
@@ -15,9 +15,9 @@ import java.util.ArrayList;
 /**
  * Created by kwonojin on 15. 5. 28..
  */
-public class MORTDeviceInfoClient {
+public class MORTDeviceInfoSender {
 
-    public MORTDeviceInfoClient(){
+    public MORTDeviceInfoSender(){
     }
 
     public void sendCameraData(String data, String ip){

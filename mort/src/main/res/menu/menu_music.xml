@@ -1,6 +1,0 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    >
-    <item android:id="@+id/action_flash" android:title="Flash"/>
-    <item android:id="@+id/action_search" android:title="Search"/>
-    <item android:id="@+id/action_realtime_flash" android:title="Realtime Flash"/>
-</menu>

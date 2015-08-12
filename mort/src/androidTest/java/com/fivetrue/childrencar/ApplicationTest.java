@@ -1,4 +1,4 @@
-package com.fivetrue.clubflash;
+package com.fivetrue.childrencar;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

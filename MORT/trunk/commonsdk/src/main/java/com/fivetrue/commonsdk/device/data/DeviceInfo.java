@@ -21,6 +21,9 @@ public class DeviceInfo extends DeviceObject{
     public float z;
     public String message = null;
 
+    public DeviceInfo(){
+    }
+
     public DeviceInfo(MORTNetworkData data){
         super(data);
         DeviceInfo info = sGson.fromJson(data.getExtra(), getClass());

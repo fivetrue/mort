@@ -16,6 +16,10 @@ public class Camera extends DeviceObject {
     public Bitmap image = null;
     public String message = null;
 
+    public Camera(){
+
+    }
+
     public Camera(MORTNetworkData data){
         super(data);
         image = BitmapConverter.Base64StringToBitmap(data.getExtra());

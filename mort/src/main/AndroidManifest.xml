@@ -32,7 +32,8 @@
         </activity>
 
         <service android:name="com.fivetrue.commonsdk.service.network.server.MORTServerNetworkService"
-            android:exported="true" />
+            android:exported="true"
+            android:process=":remote"/>
 
         <!--<service android:name="com.fivetrue.commonsdk.service.MORTDeviceControlService"-->
             <!--android:exported="true" />-->

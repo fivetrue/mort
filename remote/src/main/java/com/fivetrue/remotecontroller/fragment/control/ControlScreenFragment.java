@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.fivetrue.commonsdk.device.data.Camera;
 import com.fivetrue.remotecontroller.R;
 import com.fivetrue.remotecontroller.activity.TestViewActivity;
 
@@ -109,9 +110,9 @@ public class ControlScreenFragment extends Fragment {
         return view;
     }
 
-    public void setCameraImage(Bitmap image){
-        if(image != null && mIvCamera != null && !image.isRecycled()){
-            mIvCamera.setImageBitmap(image);
+    public void setCameraData(Camera data){
+        if(data != null && mIvCamera != null && !data.image.isRecycled()){
+            mIvCamera.setImageBitmap(data.image);
         }
     }
 

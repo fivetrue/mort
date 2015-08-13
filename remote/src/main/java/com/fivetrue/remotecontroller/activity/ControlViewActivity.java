@@ -1,15 +1,14 @@
 package com.fivetrue.remotecontroller.activity;
 
-import android.graphics.Bitmap;
-import android.hardware.SensorEvent;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.RemoteException;
 import android.view.ViewGroup;
 
-import com.fivetrue.commonsdk.network.client.MORTClientImpl;
-import com.fivetrue.commonsdk.network.client.MORTDeviceInfoServer;
+import com.fivetrue.commonsdk.device.data.Camera;
+import com.fivetrue.commonsdk.device.data.Sensor;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.fivetrue.commonsdk.utils.BitmapConverter;
+import com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkService;
+import com.fivetrue.remotecontroller.R;
 import com.fivetrue.remotecontroller.fragment.control.CarStateInfoFragment;
 import com.fivetrue.remotecontroller.fragment.control.ControlScreenFragment;
 import com.google.gson.Gson;
@@ -36,9 +35,6 @@ public class ControlViewActivity extends BaseActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control);
-        initViews();
-        initData();
-        showProgress("확인 중", "확인 중.....");
     }
 
     private void initViews(){
@@ -63,8 +59,44 @@ public class ControlViewActivity extends BaseActivity{
         mMortNetworkData.setType(MORTNetworkData.Type.OPERATION);
     }
 
+    @Override
+    protected void onServiceBind(IMORTClientNetworkService service) {
+        super.onServiceBind(service);
+        showProgress("확인 중", "확인 중.....");
+        try {
+            service.searchDevice();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
-//    @Override
+    @Override
+    protected void onConnected(String ip, MORTNetworkData data) {
+        super.onConnected(ip, data);
+        dismissProgress();
+        initViews();
+        initData();
+    }
+
+    @Override
+    protected void onFailConnect() {
+        super.onFailConnect();
+        dismissProgress();
+    }
+
+    @Override
+    protected void onCameraData(Camera camera) {
+        super.onCameraData(camera);
+        mControlScreenFragment.setCameraData(camera);
+    }
+
+    @Override
+    protected void onSensorData(Sensor sensor) {
+        super.onSensorData(sensor);
+        mCarStateFragment.onSensorChanged(event);
+    }
+
+    //    @Override
 //    public MORTNetworkData makeSendData() {
 //        return mMortNetworkData;
 //    }

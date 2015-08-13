@@ -14,11 +14,12 @@ public class Sensor extends DeviceObject{
         GRAVITY
     }
 
+    public Sensor(){
+
+    }
 
     public Sensor(MORTNetworkData data){
         super(data);
-
-
     }
 
     public Sensor(Parcel source){

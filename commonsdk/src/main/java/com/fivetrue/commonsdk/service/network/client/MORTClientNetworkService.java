@@ -4,8 +4,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
-import android.hardware.SensorEvent;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -15,7 +13,6 @@ import com.fivetrue.commonsdk.device.data.Sensor;
 import com.fivetrue.commonsdk.network.client.MORTClient;
 import com.fivetrue.commonsdk.network.client.MORTDeviceInfoServer;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.fivetrue.commonsdk.utils.BitmapConverter;
 
 import java.net.Socket;
 
@@ -88,23 +85,57 @@ public class MORTClientNetworkService extends Service{
                 mCallback.unregister(callback);
             }
         }
+
+        @Override
+        public void searchDevice() throws RemoteException {
+            if(mMortClient != null){
+                mMortClient.searchMortDevice();
+            }
+        }
     };
 
 
     private MORTClient.MORTClientNetworkListener mortClientNetworkListener = new MORTClient.MORTClientNetworkListener() {
         @Override
         public void onConnected(Socket socket, String ipAddress, MORTNetworkData data) {
-
+            if(mCallback != null){
+                int n = mCallback.beginBroadcast();
+                for(int i = 0 ; i < n ; i++){
+                    try {
+                        mCallback.getBroadcastItem(i).onConnected(ipAddress, data);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
 
         @Override
         public void onDisconnectd() {
-
+            if(mCallback != null){
+                int n = mCallback.beginBroadcast();
+                for(int i = 0 ; i < n ; i++){
+                    try {
+                        mCallback.getBroadcastItem(i).onDisconnected();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
 
         @Override
         public void onFailConnect() {
-
+            if(mCallback != null){
+                int n = mCallback.beginBroadcast();
+                for(int i = 0 ; i < n ; i++){
+                    try {
+                        mCallback.getBroadcastItem(i).onFailConnect();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     };
 

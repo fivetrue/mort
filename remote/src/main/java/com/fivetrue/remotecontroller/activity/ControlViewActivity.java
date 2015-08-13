@@ -93,7 +93,7 @@ public class ControlViewActivity extends BaseActivity{
     @Override
     protected void onSensorData(Sensor sensor) {
         super.onSensorData(sensor);
-        mCarStateFragment.onSensorChanged(event);
+        mCarStateFragment.onSensorChanged(sensor);
     }
 
     //    @Override

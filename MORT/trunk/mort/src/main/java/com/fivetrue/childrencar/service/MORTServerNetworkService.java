@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.service.network.server;
+package com.fivetrue.childrencar.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -9,12 +9,13 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.fivetrue.childrencar.network.server.MORTDeviceInfoSender;
+import com.fivetrue.childrencar.network.server.MORTServer;
+import com.fivetrue.childrencar.network.server.MORTServerImpl;
 import com.fivetrue.commonsdk.device.data.DeviceInfo;
-import com.fivetrue.commonsdk.network.server.MORTDeviceInfoSender;
-import com.fivetrue.commonsdk.network.constants.MORTNetworkConstants;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
-import com.fivetrue.commonsdk.network.server.MORTServer;
-import com.fivetrue.commonsdk.network.server.MORTServerImpl;
+import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkCallback;
+import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkService;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,9 +30,6 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     public static final String ACTION_BIND = "com.fivetrue.commsdk.service.control.bind";
     private static final int INVALID_VALUE = -1;
 
-    private ArrayList<String> mClientIps = new ArrayList<>();
-    private MORTDeviceInfoSender mDeviceInfoSender = null;
-
     public static void bind(Context context, ServiceConnection conn){
         Intent intent = new Intent(context, MORTServerNetworkService.class);
         intent.setAction(ACTION_BIND);
@@ -42,7 +40,6 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
             context.unbindService(conn);
         }
     }
-    private MORTServer mMortServer = null;
     private MORTNetworkData mDraftData = null;
 
     private RemoteCallbackList<IMORTServerNetworkCallback> mCallback = new RemoteCallbackList<>();
@@ -58,16 +55,15 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
     @Override
     public void onCreate() {
         super.onCreate();
-        mMortServer = new MORTServer(this, MORTNetworkConstants.MORT_PORT);
-        mMortServer.setNetworkMortImplement(this);
-        mMortServer.bind();
+        MORTServer.get().setNetworkMortImplement(this);
+        MORTServer.get().bind();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(mMortServer != null){
-            mMortServer.unbind();
+        if( MORTServer.get() != null){
+            MORTServer.get().unbind();
         }
     }
 
@@ -86,45 +82,6 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
             if(callback != null && mCallback != null){
                 Log.e(TAG, "unregisterCallback");
                 mCallback.unregister(callback);
-            }
-        }
-
-        @Override
-        public void sendBroadcastToClient(final String data) throws RemoteException {
-            if(mClientIps != null){
-                if(mDeviceInfoSender == null){
-                    mDeviceInfoSender = new MORTDeviceInfoSender();
-                }
-                for(int i = 0 ; i < mClientIps.size() ; i ++){
-                    MORTNetworkData networkData = MORTNetworkData.fromJson(data);
-                    if(networkData != null && networkData.getType() != null){
-                        switch(networkData.getType()){
-                        case CONNECTION:
-
-                            break;
-
-                        case DEVICE:
-                            if(networkData.getDevice() != null){
-                                switch (networkData.getDevice()){
-                                    case CAMERA:
-                                        mDeviceInfoSender.sendCameraData(data, getClientAddress(i));
-                                        break;
-
-                                    case SENSOR:
-                                        mDeviceInfoSender.sendSensorData(data, getClientAddress(i));
-                                        break;
-                                }
-                                Log.e(TAG, "MORTNetworkData.DEVICE = " + networkData.toString());
-                            }
-                            break;
-
-                        case OPERATION:
-
-                            break;
-                        }
-                    }
-                    networkData = null;
-                }
             }
         }
     };
@@ -197,24 +154,16 @@ public class MORTServerNetworkService extends Service implements MORTServerImpl 
                     }
                     break;
             }
-
         }
     }
+
     synchronized private void addClientAddress(String ip){
-        mClientIps.add(ip);
+        MORTDeviceInfoSender.get().registerClientIp(ip);
     }
 
     synchronized  private void removeClientAddress(String ip){
-        mClientIps.remove(ip);
+        MORTDeviceInfoSender.get().unregisterClientIp(ip);
     }
-
-    synchronized  private String getClientAddress(int index){
-        if(mClientIps.size() > index){
-            return mClientIps.get(index);
-        }
-        return null;
-    }
-
 
     private void onOperation(Socket socket, final MORTNetworkData data){
         if(socket != null && data != null){

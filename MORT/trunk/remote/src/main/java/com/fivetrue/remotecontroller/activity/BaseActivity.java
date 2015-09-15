@@ -10,20 +10,42 @@ import android.support.v4.app.FragmentActivity;
 
 import com.fivetrue.commonsdk.device.data.Camera;
 import com.fivetrue.commonsdk.device.data.Sensor;
-import com.fivetrue.commonsdk.network.client.MORTClient;
-import com.fivetrue.commonsdk.network.client.MORTClientImpl;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
 import com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkCallback;
 import com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkService;
-import com.fivetrue.commonsdk.service.network.client.MORTClientNetworkService;
+import com.fivetrue.remotecontroller.network.server.MORTDeviceInfoServer;
+import com.fivetrue.remotecontroller.service.MORTClientNetworkService;
+
+import ioio.lib.spi.Log;
 
 import static com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkCallback.*;
 
 
 abstract public class BaseActivity extends FragmentActivity{
 
+    private static final String TAG = "BaseActivity";
+
     private ProgressDialog mProgress = null;
     private IMORTClientNetworkService mClientService = null;
+    static private MORTDeviceInfoServer sDeviceInfoServer = null;
+
+    private  MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener onReceivedMortDeivceInfoListener = new MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener() {
+        @Override
+        public void onReceivcedCameraData(final MORTNetworkData data) {
+            if(data != null){
+                Camera camera = new Camera(data);
+                onCameraData(camera);
+            }
+        }
+
+        @Override
+        public void onReceivcedSensorData(MORTNetworkData data) {
+            if(data != null){
+                Sensor sensor = new Sensor(data);
+                onSensorData(sensor);
+            }
+        }
+    };
 
     private IMORTClientNetworkCallback mClientCallback = new Stub(){
 
@@ -57,12 +79,17 @@ abstract public class BaseActivity extends FragmentActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mProgress = new ProgressDialog(this);
+        if(sDeviceInfoServer == null){
+            sDeviceInfoServer = new MORTDeviceInfoServer(onReceivedMortDeivceInfoListener);
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         MORTClientNetworkService.bind(getApplicationContext(), serviceConnection);
+        sDeviceInfoServer.startCameraServer();
+        sDeviceInfoServer.startSensorServer();
     }
 
     @Override
@@ -71,6 +98,8 @@ abstract public class BaseActivity extends FragmentActivity{
         if(serviceConnection != null){
             MORTClientNetworkService.unbind(getApplicationContext(), serviceConnection);
         }
+        sDeviceInfoServer.stopCameraServer();
+        sDeviceInfoServer.stopSensorServer();
     }
 
     protected void showProgress(String title, String message){
@@ -107,11 +136,11 @@ abstract public class BaseActivity extends FragmentActivity{
     };
 
     protected void onServiceBind(IMORTClientNetworkService service){
-
+        Log.d(TAG, "call onServiceBind");
     }
 
     protected void onServiceUnbind(){
-
+        Log.d(TAG, "call onServiceUnbind");
     }
 
     protected void onCameraData(Camera camera){

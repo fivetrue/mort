@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.service.network.client;
+package com.fivetrue.remotecontroller.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -8,11 +8,10 @@ import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 
-import com.fivetrue.commonsdk.device.data.Camera;
-import com.fivetrue.commonsdk.device.data.Sensor;
-import com.fivetrue.commonsdk.network.client.MORTClient;
-import com.fivetrue.commonsdk.network.client.MORTDeviceInfoServer;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
+import com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkCallback;
+import com.fivetrue.commonsdk.service.network.client.IMORTClientNetworkService;
+import com.fivetrue.remotecontroller.network.server.MORTClient;
 
 import java.net.Socket;
 
@@ -38,7 +37,6 @@ public class MORTClientNetworkService extends Service{
 
     private RemoteCallbackList<IMORTClientNetworkCallback> mCallback = new RemoteCallbackList<>();
     private MORTClient mMortClient = null;
-    private MORTDeviceInfoServer mDeviceInfoServer = null;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -55,19 +53,11 @@ public class MORTClientNetworkService extends Service{
             mMortClient = new MORTClient(this);
             mMortClient.setMORTClientNetworkListener(mortClientNetworkListener);
         }
-
-        mDeviceInfoServer = new MORTDeviceInfoServer(onReceivedMortDeivceInfoListener);
-        mDeviceInfoServer.startCameraServer();
-        mDeviceInfoServer.startSensorServer();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(mDeviceInfoServer != null){
-            mDeviceInfoServer.stopCameraServer();
-            mDeviceInfoServer.stopSensorServer();
-        }
     }
 
     private IBinder mBinder = new IMORTClientNetworkService.Stub(){
@@ -135,42 +125,7 @@ public class MORTClientNetworkService extends Service{
                         e.printStackTrace();
                     }
                 }
-            }
-        }
-    };
-
-    private MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener onReceivedMortDeivceInfoListener = new MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener() {
-        @Override
-        public void onReceivcedCameraData(final MORTNetworkData data) {
-
-            if(mCallback != null && data != null){
-                Camera camera = new Camera(data);
-                int n = mCallback.beginBroadcast();
-                for(int i = 0 ; i < n ; i++){
-                    try {
-                        mCallback.getBroadcastItem(i).onReceivedCameraData(camera);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-
-        }
-
-        @Override
-        public void onReceivcedSensorData(MORTNetworkData data) {
-            if(mCallback != null && data != null){
-                Sensor sensor = new Sensor(data);
-                int n = mCallback.beginBroadcast();
-                for(int i = 0 ; i < n ; i++){
-                    try {
-                        mCallback.getBroadcastItem(i).onReceivedSensorData(sensor);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+                mCallback.finishBroadcast();
             }
         }
     };

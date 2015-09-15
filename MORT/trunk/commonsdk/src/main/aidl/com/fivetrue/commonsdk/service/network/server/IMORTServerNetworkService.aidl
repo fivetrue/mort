@@ -11,5 +11,4 @@ interface IMORTServerNetworkService {
      */
     void registerCallback(IMORTServerNetworkCallback callback);
     void unregisterCallback(IMORTServerNetworkCallback callback);
-    void sendBroadcastToClient(String data);
 }

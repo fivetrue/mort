@@ -34,7 +34,6 @@ public class CarStateInfoFragment extends RendererFragment {
     private int rotationDirection;
     private float camDirection;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
@@ -87,11 +86,10 @@ public class CarStateInfoFragment extends RendererFragment {
         scene.camera().position.x = MAX_CAM_X;
         scene.camera().position.z = 3.5f;
         scene.camera().position.y = 3.5f;
-
+        scene.camera().upAxis.rotateZ(1.2f);
         Light light = new Light();
         light.position.setAllFrom(scene.camera().position);
         scene.lights().add(light);
-
         rotationDirection = 1;
         camDirection = -.01f;
     }
@@ -106,11 +104,13 @@ public class CarStateInfoFragment extends RendererFragment {
         if (sensor != null && sensor.type != null && mCar != null) {
             switch (sensor.type) {
                 case GRAVITY:
-                    float rz = sensor.x * 10;
-                    float rx = sensor.z > 0 ? (sensor.y - 10) * 10 : Math.abs((sensor.y - 10)) * 10;
-                    mCar.rotation().z = rz;
-                    mCar.rotation().x = rx;
-
+//                    float rz = sensor.x * 10;
+//                    float rx = sensor.z > 0 ? ((sensor.y - 10) * 10) : (Math.abs((sensor.y - 10)) * 10);
+                    scene.camera().position.rotateZ(sensor.x - 10);
+//                    scene.camera().position.rotateX(sensor.y - 10);
+//                    mCar.rotation().z = rz;
+//                    mCar.rotation().x = rx;
+//                    scene.lights().get(0).position.setAllFrom(scene.camera().position);
                     break;
             }
         }

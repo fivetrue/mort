@@ -110,9 +110,16 @@ public class ControlScreenFragment extends Fragment {
         return view;
     }
 
-    public void setCameraData(Camera data){
-        if(data != null && mIvCamera != null && !data.image.isRecycled()){
-            mIvCamera.setImageBitmap(data.image);
+    public void setCameraData(final Camera data){
+        if(getActivity() != null){
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (data != null && mIvCamera != null && !data.image.isRecycled()){
+                        mIvCamera.setImageBitmap(data.image);
+                    }
+                }
+            });
         }
     }
 

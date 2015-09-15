@@ -50,16 +50,6 @@ abstract public class BaseActivity extends FragmentActivity{
     private IMORTClientNetworkCallback mClientCallback = new Stub(){
 
         @Override
-        public void onReceivedCameraData(Camera data) throws RemoteException {
-            onCameraData(data);
-        }
-
-        @Override
-        public void onReceivedSensorData(Sensor data) throws RemoteException {
-            onSensorData(data);
-        }
-
-        @Override
         public void onConnected(String ip, MORTNetworkData data) throws RemoteException {
             BaseActivity.this.onConnected(ip, data);
         }

@@ -297,7 +297,12 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
                 MORTNetworkData network = new MORTNetworkData();
                 network.setType(MORTNetworkData.Type.DEVICE);
                 network.setDevice(MORTNetworkData.Device.SENSOR);
-                network.setExtra(mGson.toJson(event));
+                com.fivetrue.commonsdk.device.data.Sensor sensor = new com.fivetrue.commonsdk.device.data.Sensor();
+                sensor.type = com.fivetrue.commonsdk.device.data.Sensor.Type.GRAVITY;
+                sensor.x = event.values[0];
+                sensor.y = event.values[1];
+                sensor.z = event.values[2];
+                network.setExtra(mGson.toJson(sensor));
                 String json = mGson.toJson(network);
                 MORTDeviceInfoSender.get().sendDataToClient(json);
                 network = null;

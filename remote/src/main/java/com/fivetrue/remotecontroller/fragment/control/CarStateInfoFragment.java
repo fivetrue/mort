@@ -103,7 +103,7 @@ public class CarStateInfoFragment extends RendererFragment {
     float angleRotateZ = 0;
     public void onSensorChanged(Sensor sensor) {
         // TODO Auto-generated method stub
-        if (sensor != null && sensor.type != null) {
+        if (sensor != null && sensor.type != null && mCar != null) {
             switch (sensor.type) {
                 case GRAVITY:
                     float rz = sensor.x * 10;

@@ -86,13 +86,17 @@ public class ControlViewActivity extends BaseActivity{
     @Override
     protected void onCameraData(Camera camera) {
         super.onCameraData(camera);
-        mControlScreenFragment.setCameraData(camera);
+        if(mControlScreenFragment != null){
+            mControlScreenFragment.setCameraData(camera);
+        }
     }
 
     @Override
     protected void onSensorData(Sensor sensor) {
         super.onSensorData(sensor);
-        mCarStateFragment.onSensorChanged(sensor);
+        if(mCarStateFragment != null){
+            mCarStateFragment.onSensorChanged(sensor);
+        }
     }
 
     //    @Override

@@ -20,6 +20,11 @@ public class Sensor extends DeviceObject{
 
     public Sensor(MORTNetworkData data){
         super(data);
+        Sensor sensor = sGson.fromJson(data.getExtra(), this.getClass());
+        x = sensor.x;
+        y = sensor.y;
+        z = sensor.z;
+        type = sensor.type;
     }
 
     public Sensor(Parcel source){

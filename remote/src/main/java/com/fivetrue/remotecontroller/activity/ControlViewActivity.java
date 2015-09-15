@@ -38,7 +38,6 @@ public class ControlViewActivity extends BaseActivity{
     }
 
     private void initViews(){
-        setContentView(R.layout.activity_control);
         mLayoutScreen = (ViewGroup) findViewById(R.id.layout_screen);
         mLayoutCarInfo = (ViewGroup) findViewById(R.id.layout_car_infomation);
         mLayoutSystemInfo  = (ViewGroup) findViewById(R.id.layout_system_infomation);

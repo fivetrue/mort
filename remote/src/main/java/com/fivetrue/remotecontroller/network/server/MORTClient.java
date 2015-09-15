@@ -1,9 +1,8 @@
-package com.fivetrue.commonsdk.network.client;
+package com.fivetrue.remotecontroller.network.server;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
 import android.text.format.Formatter;
 import android.util.Log;
 
@@ -36,22 +35,27 @@ public class MORTClient{
     private static int SEARCH_TIMEOUT = 1000;
 
     private final int INVALID_VALUE = -1;
-    private Activity mActivity = null;
+    private Context mContext = null;
     private Socket mSocket = null;
     private MORTClientNetworkListener mMortClientNetworkListener = null;
     private SharedPrefrenceManager mPref = null;
 
     private DeviceSearchThread[] mDeviceSearchTasks = new DeviceSearchThread[SEARCH_TASK];
 
+    private Handler mHandler = new Handler();
+
     public MORTClient(Context context){
+        mContext = context;
         mPref = new SharedPrefrenceManager(context, TAG);
     }
+
+
 
     private MORTClientNetworkListener mortClientNetworkListener = new MORTClientNetworkListener() {
         @Override
         public void onFailConnect() {
-            if(mMortClientNetworkListener != null && mActivity != null){
-                mActivity.runOnUiThread(new Runnable() {
+            if(mMortClientNetworkListener != null){
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         mMortClientNetworkListener.onFailConnect();
@@ -64,8 +68,8 @@ public class MORTClient{
         public void onConnected(final Socket socket, final String ipAddress, final MORTNetworkData data) {
             mSocket = socket;
             mPref.savePref(LAST_CONNECTED_SERVER, ipAddress);
-            if(mMortClientNetworkListener != null && mActivity != null){
-                mActivity.runOnUiThread(new Runnable() {
+            if(mMortClientNetworkListener != null){
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         mMortClientNetworkListener.onConnected(socket, ipAddress, data);
@@ -76,8 +80,8 @@ public class MORTClient{
 
         @Override
         public void onDisconnectd() {
-            if(mMortClientNetworkListener != null && mActivity != null){
-                mActivity.runOnUiThread(new Runnable() {
+            if(mMortClientNetworkListener != null){
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         mMortClientNetworkListener.onDisconnectd();
@@ -111,6 +115,7 @@ public class MORTClient{
                             if(out != null){
                                 data = new MORTNetworkData();
                                 data.setType(MORTNetworkData.Type.CONNECTION);
+                                data.setConnection(MORTNetworkData.Connection.CONNECTED);
                                 String json = gson.toJson(data);
                                 Log.e(TAG, "Object to json : " + json);
                                 out.writeUTF(json);
@@ -138,7 +143,7 @@ public class MORTClient{
 
     private void doSearchThead(){
         for(int i = 0 ; i < mDeviceSearchTasks.length ; i++){
-            WifiManager wm = (WifiManager) mActivity.getSystemService(Context.WIFI_SERVICE);
+            WifiManager wm = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
             final String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
             mDeviceSearchTasks[i] = new DeviceSearchThread(i, ip, mortClientNetworkListener);
             mDeviceSearchTasks[i].start();
@@ -248,6 +253,7 @@ public class MORTClient{
                         if(out != null){
                             data = new MORTNetworkData();
                             data.setType(MORTNetworkData.Type.CONNECTION);
+                            data.setConnection(MORTNetworkData.Connection.CONNECTED);
                             String json = gson.toJson(data);
                             Log.e(TAG, "Object to json : " + json);
                             out.writeUTF(json);

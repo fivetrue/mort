@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.network.client;
+package com.fivetrue.remotecontroller.network.server;
 
 import android.util.Log;
 

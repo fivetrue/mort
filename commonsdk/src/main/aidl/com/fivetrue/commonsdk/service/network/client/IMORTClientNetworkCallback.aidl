@@ -11,8 +11,6 @@ oneway interface IMORTClientNetworkCallback {
      * Demonstrates some basic types that you can use as parameters
      * and return values in AIDL.s
      */
-      void onReceivedCameraData(out Camera data);
-      void onReceivedSensorData(out Sensor data);
       void onConnected(String ip, out MORTNetworkData data);
       void onDisconnected();
       void onFailConnect();

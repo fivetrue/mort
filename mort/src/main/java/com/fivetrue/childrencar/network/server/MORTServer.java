@@ -1,4 +1,4 @@
-package com.fivetrue.commonsdk.network.server;
+package com.fivetrue.childrencar.network.server;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
@@ -28,7 +28,17 @@ public class MORTServer extends Thread {
     private boolean isRun = false;
     private MORTServerImpl mNetwork = null;
 
-    public MORTServer(Context context, int port){
+    private static MORTServer sInstance = null;
+
+    public static void init(Context context, int port){
+        sInstance = new MORTServer(context, port);
+    }
+
+    public static MORTServer get(){
+        return sInstance;
+    }
+
+    private MORTServer(Context context, int port){
         mContext = context;
         mPort = port;
     }

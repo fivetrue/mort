@@ -3,7 +3,6 @@ package com.fivetrue.commonsdk.utils;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -11,8 +10,9 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Build;
 import android.util.Log;
-import android.view.SurfaceView;
 import android.view.View;
+
+import com.fivetrue.commonsdk.MortApplication;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

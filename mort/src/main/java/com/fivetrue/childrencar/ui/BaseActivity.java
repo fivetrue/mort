@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.fivetrue.childrencar.R;
 import com.fivetrue.childrencar.network.server.MORTDeviceInfoSender;
+import com.fivetrue.commonsdk.device.control.ControlOperation;
 import com.fivetrue.commonsdk.device.data.DeviceInfo;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
 import com.fivetrue.commonsdk.service.network.server.IMORTServerNetworkCallback;
@@ -74,42 +75,9 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         @Override
         public void onRecevedOperation(final MORTNetworkData data) throws RemoteException {
             Log.e(TAG, "onRecevedOperation");
-            if(data != null && data.getOperation() != null){
-                switch(data.getOperation()){
-                    case CENTER_LED_ON:
-                        mDeviceControlLooper.setOnCenterLed(true);
-                        break;
-
-                    case CENTER_LED_OFF:
-                        mDeviceControlLooper.setOnCenterLed(false);
-                        break;
-
-                    case BUZZER_ON:
-                        mDeviceControlLooper.setOnBuzzer(HRZ+=10, 300);
-                        break;
-
-                    case SERVO_MORTOR:
-                        if(data.getExtra() != null){
-                            mDeviceControlLooper.setServoMotorValue(Float.parseFloat(data.getExtra()));
-                        }
-                        break;
-
-                    case LEFT_MORTOR_ON:
-
-                        break;
-
-                    case LEFT_MORTOR_OFF:
-
-                        break;
-
-                    case RIGHT_MORTOR_ON:
-
-                        break;
-
-                    case RIGHT_MORTOR_OFF:
-
-                        break;
-                }
+            if(data != null){
+                ControlOperation operation = mGson.fromJson(data.getMessage(), ControlOperation.class);
+                mDeviceControlLooper.setControlOperation(operation);
             }
         }
 

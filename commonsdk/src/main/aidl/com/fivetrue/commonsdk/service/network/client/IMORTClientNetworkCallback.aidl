@@ -12,6 +12,7 @@ oneway interface IMORTClientNetworkCallback {
      * and return values in AIDL.s
      */
       void onConnected(String ip, out MORTNetworkData data);
+      void onReceived(out MORTNetworkData data);
       void onDisconnected();
       void onFailConnect();
 

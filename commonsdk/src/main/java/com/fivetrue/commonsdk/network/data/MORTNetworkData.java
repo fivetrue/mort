@@ -23,23 +23,11 @@ public class MORTNetworkData implements Parcelable {
         SENSOR
     }
 
-    public static enum Operation{
-        CENTER_LED_ON,
-        CENTER_LED_OFF,
-        BUZZER_ON,
-        SERVO_MORTOR,
-        RIGHT_MORTOR_ON,
-        RIGHT_MORTOR_OFF,
-        LEFT_MORTOR_ON,
-        LEFT_MORTOR_OFF,
-    }
-
     private static final Gson sGson = new Gson();
 
     private Type type = null;
     private Connection connection = null;
     private Device device = null;
-    private Operation operation = null;
     private String message = null;
     private String extra = null;
 
@@ -65,14 +53,6 @@ public class MORTNetworkData implements Parcelable {
 
     public void setDevice(Device device) {
         this.device = device;
-    }
-
-    public Operation getOperation() {
-        return operation;
-    }
-
-    public void setOperation(Operation operation) {
-        this.operation = operation;
     }
 
     public String getMessage() {
@@ -102,7 +82,6 @@ public class MORTNetworkData implements Parcelable {
         this.type = data.type;
         this.device = data.device;
         this.connection = data.connection;
-        this.operation = data.operation;
         this.message = data.message;
         this.extra = data.extra;
     }
@@ -111,7 +90,6 @@ public class MORTNetworkData implements Parcelable {
         type = Type.valueOf(in.readString());
         connection = Connection.valueOf(in.readString());
         device = Device.valueOf(in.readString());
-        operation = Operation.valueOf(in.readString());
         message = in.readString();
         extra = in.readString();
     }
@@ -130,7 +108,6 @@ public class MORTNetworkData implements Parcelable {
         dest.writeString(type.name());
         dest.writeString(connection.name());
         dest.writeString(device.name());
-        dest.writeString(operation.name());
         dest.writeString(message);
         dest.writeString(extra);
     }
@@ -153,7 +130,6 @@ public class MORTNetworkData implements Parcelable {
                 "type=" + type +
                 ", connection=" + connection +
                 ", device=" + device +
-                ", operation=" + operation +
                 ", message='" + message + '\'' +
                 ", extra='" + extra + '\'' +
                 '}';

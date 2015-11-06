@@ -7,4 +7,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+
+    <style name="ControlButton" >
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12dp</item>
+    </style>
+
 </resources>

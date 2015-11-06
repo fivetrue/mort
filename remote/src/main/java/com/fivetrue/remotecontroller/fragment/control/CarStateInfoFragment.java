@@ -97,19 +97,19 @@ public class CarStateInfoFragment extends RendererFragment {
     private static final float VALUE = 0.1f;
     private static final int MAX = 1;
     float operand = 0.1f;
-    float angleRotateX = 0;
+    float angleRotateX = 0.1f;
     float angleRotateZ = 0;
     public void onSensorChanged(Sensor sensor) {
         // TODO Auto-generated method stub
         if (sensor != null && sensor.type != null && mCar != null) {
             switch (sensor.type) {
                 case GRAVITY:
-//                    float rz = sensor.x * 10;
-//                    float rx = sensor.z > 0 ? ((sensor.y - 10) * 10) : (Math.abs((sensor.y - 10)) * 10);
-                    scene.camera().position.rotateZ(sensor.x - 10);
-//                    scene.camera().position.rotateX(sensor.y - 10);
-//                    mCar.rotation().z = rz;
-//                    mCar.rotation().x = rx;
+                    float rz = sensor.x ;
+                    float rx = sensor.z > 0 ? ((sensor.y + 10)) : Math.abs((sensor.y - 10));
+//                    scene.camera().position.rotateZ(rx);
+//                    scene.camera().position.rotateZ(angleRotateX);
+                    mCar.rotation().z = rz;
+                    mCar.rotation().x = rx;
 //                    scene.lights().get(0).position.setAllFrom(scene.camera().position);
                     break;
             }

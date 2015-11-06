@@ -1,9 +1,12 @@
 package com.fivetrue.childrencar.ui;
 
+import com.fivetrue.commonsdk.device.control.ControlOperation;
+
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.exception.ConnectionLostException;
+import ioio.lib.spi.Log;
 import ioio.lib.util.BaseIOIOLooper;
 
 /**
@@ -16,6 +19,7 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
         void disconnected();
     }
 
+    private static final int MAX_PWM_VALUE = 0xFF;
     private static final float SERVO_MOTOR_VALUE_MAX = 0.1f;
     private static final float SERVO_MORTOR_VALUE_MIN = 0.01f;
     /** The on-board LED. */
@@ -24,17 +28,29 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     private static final int PIN_MOTOR = 10;
     private static final int PIN_SERVO_MOTOR = 5;
 
-    private static final int PIN_LEFT_MOTOR_SPEED_PIN = 18;
-    private static final int PIN_LEFT_MOTOR_IN_1 = 17;
-    private static final int PIN_LEFT_MOTOR_IN_2 = 16;
+    private static final int PIN_MOTOR_IN_1 = 1;
+    private static final int PIN_MOTOR_IN_2 = 2;
+    private static final int PIN_MOTOR_IN_3 = 3;
+
+    private static final int PIN_MOTOR_IN_11 = 11;
+    private static final int PIN_MOTOR_IN_12 = 12;
+    private static final int PIN_MOTOR_IN_13 = 13;
 
     private DigitalOutput mCenterLED = null;
     private DigitalOutput mMotor = null;
     private PwmOutput mServoMotor;
 
     private PwmOutput mLeftMotorSpeed = null;
-    private DigitalOutput mLeftMotor_In1 = null;
-    private DigitalOutput mLeftMotor_In2 = null;
+
+    //Right
+    private DigitalOutput mMotor_In1 = null;
+    private DigitalOutput mMotor_In2 = null;
+    private PwmOutput mMotor_in3 = null;
+
+    //Left
+    private DigitalOutput mMotor_In11 = null;
+    private DigitalOutput mMotor_In12 = null;
+    private PwmOutput mMotor_in13 = null;
 
     private IOIO mIOIO = null;
 
@@ -44,6 +60,8 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     private float mServoMotorDegree = 0.01f;
 
     private DeviceControlImpl mControlImpl = null;
+
+    private ControlOperation mPreControlOperation = null;
 
     public MORTDeviceControlLooper(DeviceControlImpl impl){
         mControlImpl = impl;
@@ -69,9 +87,13 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     }
 
     private void initMotors(IOIO ioio) throws ConnectionLostException {
-        mLeftMotorSpeed = ioio.openPwmOutput(PIN_LEFT_MOTOR_SPEED_PIN, 0);
-        mLeftMotor_In1 = ioio.openDigitalOutput(PIN_LEFT_MOTOR_IN_1);
-        mLeftMotor_In2 = ioio.openDigitalOutput(PIN_LEFT_MOTOR_IN_2);
+        mMotor_In1 = ioio.openDigitalOutput(PIN_MOTOR_IN_1);
+        mMotor_In2 = ioio.openDigitalOutput(PIN_MOTOR_IN_2);
+//        mMotor_in3 = ioio.openPwmOutput(PIN_MOTOR_IN_3, 0);
+
+        mMotor_In11 = ioio.openDigitalOutput(PIN_MOTOR_IN_11);
+        mMotor_In12 = ioio.openDigitalOutput(PIN_MOTOR_IN_12);
+//        mMotor_in13 = ioio.openPwmOutput(PIN_MOTOR_IN_13, 0);
     }
 
     /**
@@ -87,7 +109,6 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
     }
-
     /**
      * Called when the IOIO is disconnected.
      *
@@ -96,6 +117,14 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     @Override
     public void disconnected() {
         mControlImpl.disconnected();
+        try {
+            mMotor_In1.write(false);
+            mMotor_In2.write(false);
+//            mMotor_in3.setDutyCycle(0f);
+        } catch (ConnectionLostException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -108,12 +137,60 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
         mControlImpl.showVersionInfo(mIOIO, "Incompatible firmware version!");
     }
 
-    public void setOnCenterLed(final boolean onCenterLed){
-        try {
-            isCenterLed = onCenterLed;
-            mCenterLED.write(isCenterLed);
-        } catch (ConnectionLostException e) {
-            e.printStackTrace();
+    public void setControlOperation(ControlOperation operation){
+        if(operation != null){
+            int x = 0;
+            int y = 0;
+            if(mPreControlOperation != null){
+                if(mPreControlOperation.getX() == operation.getX()
+                        && mPreControlOperation.getY() == operation.getY()){
+                    return;
+                }
+            }else{
+                doSpinMoter(operation);
+            }
+
+        }
+//        try {
+//            isCenterLed = onCenterLed;
+//            mCenterLED.write(isCenterLed);
+//        } catch (ConnectionLostException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void doSpinMoter(ControlOperation operation){
+        if(operation != null && mMotor_In1 != null && mMotor_In2 != null
+                && mMotor_In11 != null && mMotor_In12 != null){
+            Log.d("doSpinMoter", operation.toString());
+            boolean doRight = operation.getX() > 0;
+            boolean doForward = operation.getY() > 0;
+            try {
+                //Stop
+                if(operation.getY() == 0 && operation.getX() == 0){
+                    mMotor_In1.write(false);
+                    mMotor_In2.write(false);
+
+                    mMotor_In11.write(false);
+                    mMotor_In12.write(false);
+                }else{
+                    if(operation.getX() == 0){
+                        mMotor_In1.write(doForward);
+                        mMotor_In2.write(!doForward);
+
+                        mMotor_In11.write(doForward);
+                        mMotor_In12.write(!doForward);
+                    }else{
+                        mMotor_In1.write(!doRight);
+                        mMotor_In2.write(doRight);
+
+                        mMotor_In11.write(doRight);
+                        mMotor_In12.write(!doRight);
+                    }
+                }
+            }catch(ConnectionLostException e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -135,8 +212,8 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     public void setLeftMotorCommand(int speed, boolean reverse){
         try {
             mLeftMotorSpeed.setDutyCycle(1.0f);
-            mLeftMotor_In1.write(!reverse);
-            mLeftMotor_In2.write(reverse);
+            mMotor_In1.write(!reverse);
+            mMotor_In2.write(reverse);
         } catch (ConnectionLostException e) {
             e.printStackTrace();
         }

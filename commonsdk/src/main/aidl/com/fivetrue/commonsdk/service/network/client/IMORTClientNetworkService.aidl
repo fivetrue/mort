@@ -12,4 +12,5 @@ interface IMORTClientNetworkService {
     void registerCallback(IMORTClientNetworkCallback callback);
     void unregisterCallback(IMORTClientNetworkCallback callback);
     void searchDevice();
+    void sendData(String data);
 }

@@ -2,8 +2,10 @@ package com.fivetrue.remotecontroller.activity;
 
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.view.View;
 import android.view.ViewGroup;
 
+import com.fivetrue.commonsdk.device.control.ControlOperation;
 import com.fivetrue.commonsdk.device.data.Camera;
 import com.fivetrue.commonsdk.device.data.Sensor;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
@@ -31,18 +33,33 @@ public class ControlViewActivity extends BaseActivity{
     private ViewGroup mLayoutSystemInfo = null;
     private ViewGroup mLayoutCarInfo = null;
 
+    private ControlOperation  mOperation = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control);
+        mOperation =  new ControlOperation();
     }
 
     private void initViews(){
         mLayoutScreen = (ViewGroup) findViewById(R.id.layout_screen);
         mLayoutCarInfo = (ViewGroup) findViewById(R.id.layout_car_infomation);
         mLayoutSystemInfo  = (ViewGroup) findViewById(R.id.layout_system_infomation);
+
         mControlScreenFragment = new ControlScreenFragment();
         mCarStateFragment = new CarStateInfoFragment();
+
+        findViewById(R.id.btn_speaker).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_up).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_function1).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_left).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_stop).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_right).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_function2).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_down).setOnClickListener(onClickListener);
+        findViewById(R.id.btn_function3).setOnClickListener(onClickListener);
+
 
         getSupportFragmentManager().beginTransaction()
                 .add(mLayoutScreen.getId(), mControlScreenFragment, mControlScreenFragment.TAG)
@@ -55,7 +72,92 @@ public class ControlViewActivity extends BaseActivity{
 
     private void initData(){
         mMortNetworkData = new MORTNetworkData();
-        mMortNetworkData.setType(MORTNetworkData.Type.OPERATION);
+    }
+
+
+    private View.OnClickListener onClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(mOperation != null){
+                int x = 0;
+                int y = 0;
+                switch(v.getId()){
+                    case R.id.btn_speaker:
+                        break;
+                    case R.id.btn_up :
+                        y = 1;
+                        break;
+                    case R.id.btn_function1:
+                        break;
+                    case R.id.btn_function2:
+                        break;
+                    case R.id.btn_down :
+                        y = -1;
+                        break;
+                    case R.id.btn_function3:
+                        break;
+                    case R.id.btn_left:
+                        x = -1;
+                        break;
+                    case R.id.btn_right:
+                        x = 1;
+                        break;
+
+                    case R.id.btn_stop :
+                    default:
+                        y = 0;
+                        x = 0;
+                        break;
+                }
+                mOperation.setY(y);
+                mOperation.setX(x);
+                mMortNetworkData.setType(MORTNetworkData.Type.OPERATION);
+                mMortNetworkData.setMessage(mGson.toJson(mOperation));
+                sendData(mMortNetworkData);
+            }
+        }
+    };
+//    private View.OnTouchListener onTouchLayerListener = new View.OnTouchListener() {
+//        @Override
+//        public boolean onTouch(View v, MotionEvent event) {
+//            if(event != null){
+//                switch(event.getAction()){
+//                    case MotionEvent.ACTION_DOWN :
+//                        isTouchLayer = true;
+//                        mOperation.setX(getPositionX(event.getX()));
+//                        mOperation.setY(getPositionY(event.getY()));
+//                        return true;
+//
+//                    case MotionEvent.ACTION_MOVE :
+//                        if(isTouchLayer){
+//                            mOperation.setX(getPositionX(event.getX()));
+//                            mOperation.setY(getPositionY(event.getY()));
+//                        }
+//                        return true;
+//
+//                    case MotionEvent.ACTION_UP:
+//                    case MotionEvent.ACTION_CANCEL:
+//                        isTouchLayer = false;
+//                        mMortNetworkData.setType(MORTNetworkData.Type.OPERATION);
+//                        mMortNetworkData.setMessage(mGson.toJson(mOperation));
+//                        sendData(mMortNetworkData);
+//                        return true;
+//                }
+//            }
+//            return false;
+//        }
+//    };
+
+    private int getPositionX(float x){
+        double px = Math.floor((double)(x / (getResources().getDisplayMetrics().widthPixels / ControlOperation.TOUCH_ARRAY_COUNT)));
+        px = px - Math.floor(ControlOperation.TOUCH_ARRAY_COUNT / 2);
+        return (int) px;
+    }
+
+    private int getPositionY(float y){
+        double py = Math.floor((double) (y / (getResources().getDisplayMetrics().heightPixels / ControlOperation.TOUCH_ARRAY_COUNT)));
+        py =  Math.floor(ControlOperation.TOUCH_ARRAY_COUNT / 2) - py;
+        return (int)py;
     }
 
     @Override
@@ -99,49 +201,19 @@ public class ControlViewActivity extends BaseActivity{
         }
     }
 
-    //    @Override
-//    public MORTNetworkData makeSendData() {
-//        return mMortNetworkData;
-//    }
-//
-//    @Override
-//    public void receivedData(final MORTNetworkData data) {
-//        this.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                dismissProgress();
-//                if(data != null){
-//                    Log.e(TAG, data.toString());
-////                    Toast.makeText(ControlViewActivity.this, data.toString(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        });
-//    }
+    @Override
+    protected void onReceivedData(MORTNetworkData data) {
+        super.onReceivedData(data);
+    }
 
-//    private MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener onReceivedMortDeivceInfoListener = new MORTDeviceInfoServer.OnReceivedMortDeivceInfoListener() {
-//        @Override
-//        public void onReceivcedCameraData(final MORTNetworkData data) {
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    if(mControlScreenFragment != null){
-//                        Bitmap bm = BitmapConverter.Base64StringToBitmap(data.getMessage());
-//                        mControlScreenFragment.setCameraImage(bm);
-//                        bm = null;
-//                    }
-//                }
-//            });
-//
-//        }
-//
-//        @Override
-//        public void onReceivcedSensorData(MORTNetworkData data) {
-//            if(mCarStateFragment != null && data.getMessage() != null){
-//                SensorEvent event = mGson.fromJson(data.getMessage(), SensorEvent.class);
-//                if(event != null){
-//                    mCarStateFragment.onSensorChanged(event);
-//                }
-//            }
-//        }
-//    };
+    synchronized private void sendData(MORTNetworkData data){
+        if(getClientService() != null){
+            try {
+                getClientService().sendData(mGson.toJson(data));
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

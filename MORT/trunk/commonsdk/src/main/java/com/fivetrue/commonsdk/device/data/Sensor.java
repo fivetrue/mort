@@ -54,6 +54,17 @@ public class Sensor extends DeviceObject{
 
     }
 
+
+    @Override
+    public String toString() {
+        return "Sensor{" +
+                "type=" + type +
+                ", x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
+    }
+
     public static Creator<Sensor> CREATOR = new Creator<Sensor>() {
         @Override
         public Sensor createFromParcel(Parcel source) {

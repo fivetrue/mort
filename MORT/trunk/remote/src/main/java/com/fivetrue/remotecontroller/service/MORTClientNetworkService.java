@@ -82,6 +82,13 @@ public class MORTClientNetworkService extends Service{
                 mMortClient.searchMortDevice();
             }
         }
+
+        @Override
+        public void sendData(String data) throws RemoteException {
+            if(mMortClient != null){
+                mMortClient.sendData(data);
+            }
+        }
     };
 
 
@@ -127,6 +134,21 @@ public class MORTClientNetworkService extends Service{
                 }
                 mCallback.finishBroadcast();
             }
+        }
+
+        @Override
+        public void onReceived(Socket socket, MORTNetworkData data) {
+//            if(mCallback != null){
+//                int n = mCallback.beginBroadcast();
+//                for(int i = 0 ; i < n ; i++){
+//                    try {
+//                        mCallback.getBroadcastItem(i).onReceived(data);
+//                    } catch (RemoteException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                mCallback.finishBroadcast();
+//            }
         }
     };
 }

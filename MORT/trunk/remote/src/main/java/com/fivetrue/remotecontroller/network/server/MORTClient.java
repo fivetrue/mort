@@ -24,9 +24,10 @@ import java.net.SocketAddress;
 public class MORTClient{
 
     public interface MORTClientNetworkListener{
-        public void onConnected(Socket socket, String ipAddress, MORTNetworkData data);
-        public void onDisconnectd();
-        public void onFailConnect();
+        void onConnected(Socket socket, String ipAddress, MORTNetworkData data);
+        void onDisconnectd();
+        void onFailConnect();
+        void onReceived(Socket socket, MORTNetworkData data);
     }
 
     private static final String LAST_CONNECTED_SERVER = "lastConnServer";
@@ -44,6 +45,8 @@ public class MORTClient{
 
     private Handler mHandler = new Handler();
 
+    private Gson mGson = new Gson();
+
     public MORTClient(Context context){
         mContext = context;
         mPref = new SharedPrefrenceManager(context, TAG);
@@ -59,6 +62,18 @@ public class MORTClient{
                     @Override
                     public void run() {
                         mMortClientNetworkListener.onFailConnect();
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onReceived(final Socket socket, final MORTNetworkData data) {
+            if(mMortClientNetworkListener != null){
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMortClientNetworkListener.onReceived(socket, data);
                     }
                 });
             }
@@ -150,33 +165,30 @@ public class MORTClient{
         }
     }
 
-    public void sendData(MORTClientImpl client){
-        sendData(mSocket, client);
+    public void sendData(String data){
+        sendData(mSocket, data);
     }
 
-    public void sendData(final Socket socket, final MORTClientImpl client){
-        if(socket != null && client != null){
-            Log.d(TAG, "sendData = " + client.makeSendData().toString());
+    public void sendData(final Socket socket, final String data){
+        if(socket != null && data != null){
+            Log.d(TAG, "sendData = " + data);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     if(socket.isConnected()){
-                        if(client.makeSendData() != null){
-                            DataOutputStream out = null;
-                            DataInputStream in = null;
-                            try {
-                                out = new DataOutputStream(socket.getOutputStream());
-                                in = new DataInputStream(socket.getInputStream());
-                                Gson gson = new Gson();
-                                if(out != null && client.makeSendData() != null){
-                                    out.writeUTF(gson.toJson(client.makeSendData()));
-                                }
-                                if(in != null){
-                                    client.receivedData(gson.fromJson(in.readUTF(), MORTNetworkData.class));
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                        DataOutputStream out = null;
+                        DataInputStream in = null;
+                        try {
+                            out = new DataOutputStream(socket.getOutputStream());
+                            in = new DataInputStream(socket.getInputStream());
+                            if(out != null && data != null){
+                                out.writeUTF(data);
                             }
+                            if(in != null){
+                                mortClientNetworkListener.onReceived(socket, mGson.fromJson(in.readUTF(), MORTNetworkData.class));
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }else{
                         mortClientNetworkListener.onDisconnectd();

@@ -55,6 +55,11 @@ abstract public class BaseActivity extends FragmentActivity{
         }
 
         @Override
+        public void onReceived(MORTNetworkData data) throws RemoteException {
+            BaseActivity.this.onReceivedData(data);
+        }
+
+        @Override
         public void onDisconnected() throws RemoteException {
             BaseActivity.this.onDisconnected();
         }
@@ -150,6 +155,10 @@ abstract public class BaseActivity extends FragmentActivity{
     }
 
     protected void onFailConnect(){
+
+    }
+
+    protected void onReceivedData(MORTNetworkData data){
 
     }
 

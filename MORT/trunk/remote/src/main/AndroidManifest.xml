@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.MORTClientNetworkService" />
+        <!--<service android:name=".service.MORTClientNetworkService" />-->
     </application>
 
 </manifest>

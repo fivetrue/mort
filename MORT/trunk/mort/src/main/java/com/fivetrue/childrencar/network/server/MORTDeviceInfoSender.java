@@ -66,7 +66,7 @@ public class MORTDeviceInfoSender {
                                         sendSensorData(data, ip);
                                         break;
                                 }
-                                Log.e(TAG, "MORTNetworkData.DEVICE = " + networkData.toString());
+//                                Log.e(TAG, "MORTNetworkData.DEVICE = " + networkData.toString());
                             }
                             break;
 

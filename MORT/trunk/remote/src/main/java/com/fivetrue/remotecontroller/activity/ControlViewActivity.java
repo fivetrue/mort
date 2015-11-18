@@ -15,6 +15,8 @@ import com.fivetrue.remotecontroller.fragment.control.CarStateInfoFragment;
 import com.fivetrue.remotecontroller.fragment.control.ControlScreenFragment;
 import com.google.gson.Gson;
 
+import ioio.lib.spi.Log;
+
 
 /**
  * Created by Fivetrue on 2015-04-19.
@@ -160,20 +162,21 @@ public class ControlViewActivity extends BaseActivity{
         return (int)py;
     }
 
-    @Override
-    protected void onServiceBind(IMORTClientNetworkService service) {
-        super.onServiceBind(service);
-        showProgress("확인 중", "확인 중.....");
-        try {
-            service.searchDevice();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    protected void onServiceBind(IMORTClientNetworkService service) {
+//        super.onServiceBind(service);
+//        showProgress("확인 중", "확인 중.....");
+//        try {
+//            service.searchDevice();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     protected void onConnected(String ip, MORTNetworkData data) {
         super.onConnected(ip, data);
+        Log.e(TAG, "onConnected = " + ip + "/" + data.toString());
         dismissProgress();
         initViews();
         initData();
@@ -207,12 +210,8 @@ public class ControlViewActivity extends BaseActivity{
     }
 
     synchronized private void sendData(MORTNetworkData data){
-        if(getClientService() != null){
-            try {
-                getClientService().sendData(mGson.toJson(data));
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+        if(getMortClient() != null){
+            getMortClient().sendData(mGson.toJson(data));
         }
     }
 

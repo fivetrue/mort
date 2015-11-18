@@ -6,7 +6,6 @@ import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.exception.ConnectionLostException;
-import ioio.lib.spi.Log;
 import ioio.lib.util.BaseIOIOLooper;
 
 /**
@@ -30,11 +29,9 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
 
     private static final int PIN_MOTOR_IN_1 = 1;
     private static final int PIN_MOTOR_IN_2 = 2;
-    private static final int PIN_MOTOR_IN_3 = 3;
 
-    private static final int PIN_MOTOR_IN_11 = 11;
-    private static final int PIN_MOTOR_IN_12 = 12;
-    private static final int PIN_MOTOR_IN_13 = 13;
+    private static final int PIN_MOTOR_IN_3 = 3;
+    private static final int PIN_MOTOR_IN_4 = 4;
 
     private DigitalOutput mCenterLED = null;
     private DigitalOutput mMotor = null;
@@ -45,12 +42,10 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     //Right
     private DigitalOutput mMotor_In1 = null;
     private DigitalOutput mMotor_In2 = null;
-    private PwmOutput mMotor_in3 = null;
 
     //Left
-    private DigitalOutput mMotor_In11 = null;
-    private DigitalOutput mMotor_In12 = null;
-    private PwmOutput mMotor_in13 = null;
+    private DigitalOutput mMotor_In3 = null;
+    private DigitalOutput mMotor_In4 = null;
 
     private IOIO mIOIO = null;
 
@@ -91,8 +86,8 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
         mMotor_In2 = ioio.openDigitalOutput(PIN_MOTOR_IN_2);
 //        mMotor_in3 = ioio.openPwmOutput(PIN_MOTOR_IN_3, 0);
 
-        mMotor_In11 = ioio.openDigitalOutput(PIN_MOTOR_IN_11);
-        mMotor_In12 = ioio.openDigitalOutput(PIN_MOTOR_IN_12);
+        mMotor_In3 = ioio.openDigitalOutput(PIN_MOTOR_IN_3);
+        mMotor_In4 = ioio.openDigitalOutput(PIN_MOTOR_IN_4);
 //        mMotor_in13 = ioio.openPwmOutput(PIN_MOTOR_IN_13, 0);
     }
 
@@ -108,6 +103,8 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
      */
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
+        doSpinMoter(mPreControlOperation);
+        Thread.sleep(10L);
     }
     /**
      * Called when the IOIO is disconnected.
@@ -138,54 +135,48 @@ public class MORTDeviceControlLooper extends BaseIOIOLooper {
     }
 
     public void setControlOperation(ControlOperation operation){
-        if(operation != null){
-            int x = 0;
-            int y = 0;
-            if(mPreControlOperation != null){
-                if(mPreControlOperation.getX() == operation.getX()
-                        && mPreControlOperation.getY() == operation.getY()){
-                    return;
-                }
-            }else{
-                doSpinMoter(operation);
-            }
-
-        }
-//        try {
-//            isCenterLed = onCenterLed;
-//            mCenterLED.write(isCenterLed);
-//        } catch (ConnectionLostException e) {
-//            e.printStackTrace();
+//        if(operation != null){
+//            int x = 0;
+//            int y = 0;
+//            if(mPreControlOperation != null){
+//                if(mPreControlOperation.getX() == operation.getX()
+//                        && mPreControlOperation.getY() == operation.getY()){
+//                    return;
+//                }
+//            }else{
+                mPreControlOperation = operation;
+//        doSpinMoter(mPreControlOperation);
+//            }
 //        }
     }
 
     private void doSpinMoter(ControlOperation operation){
         if(operation != null && mMotor_In1 != null && mMotor_In2 != null
-                && mMotor_In11 != null && mMotor_In12 != null){
-            Log.d("doSpinMoter", operation.toString());
+                && mMotor_In3 != null && mMotor_In4 != null){
+//            Log.d("doSpinMoter", operation.toString());
             boolean doRight = operation.getX() > 0;
             boolean doForward = operation.getY() > 0;
             try {
                 //Stop
                 if(operation.getY() == 0 && operation.getX() == 0){
                     mMotor_In1.write(false);
-                    mMotor_In2.write(false);
+                    mMotor_In3.write(false);
 
-                    mMotor_In11.write(false);
-                    mMotor_In12.write(false);
+                    mMotor_In2.write(false);
+                    mMotor_In4.write(false);
                 }else{
                     if(operation.getX() == 0){
                         mMotor_In1.write(doForward);
-                        mMotor_In2.write(!doForward);
+                        mMotor_In3.write(doForward);
 
-                        mMotor_In11.write(doForward);
-                        mMotor_In12.write(!doForward);
+                        mMotor_In2.write(!doForward);
+                        mMotor_In4.write(!doForward);
                     }else{
                         mMotor_In1.write(!doRight);
-                        mMotor_In2.write(doRight);
+                        mMotor_In3.write(doRight);
 
-                        mMotor_In11.write(doRight);
-                        mMotor_In12.write(!doRight);
+                        mMotor_In2.write(doRight);
+                        mMotor_In4.write(!doRight);
                     }
                 }
             }catch(ConnectionLostException e){

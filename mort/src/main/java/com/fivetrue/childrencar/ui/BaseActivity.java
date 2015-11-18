@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import com.fivetrue.childrencar.R;
 import com.fivetrue.childrencar.network.server.MORTDeviceInfoSender;
+import com.fivetrue.childrencar.network.server.MORTServer;
+import com.fivetrue.childrencar.network.server.MORTServerImpl;
 import com.fivetrue.commonsdk.device.control.ControlOperation;
 import com.fivetrue.commonsdk.device.data.DeviceInfo;
 import com.fivetrue.commonsdk.network.data.MORTNetworkData;
@@ -29,7 +31,9 @@ import com.fivetrue.commonsdk.utils.BitmapConverter;
 import com.fivetrue.commonsdk.utils.ScreenTaker;
 import com.google.gson.Gson;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 
 import ioio.lib.api.IOIO;
 import ioio.lib.spi.Log;
@@ -40,10 +44,10 @@ import ioio.lib.util.android.IOIOActivity;
  * Created by Fivetrue on 2015-03-19.
  */
 
-public class BaseActivity extends IOIOActivity implements MORTDeviceControlLooper.DeviceControlImpl, SensorEventListener{
+public class BaseActivity extends IOIOActivity implements MORTDeviceControlLooper.DeviceControlImpl, SensorEventListener, MORTServerImpl{
 
     public static final String TAG = "BaseActivity";
-    private IMORTServerNetworkService mNetworkService = null;
+//    private IMORTServerNetworkService mNetworkService = null;
     private MORTDeviceControlLooper mDeviceControlLooper = null;
     private ScreenTaker mScreenTaker = null;
     private Camera mCamera = null;
@@ -69,49 +73,49 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         });
     }
 
-    private IMORTServerNetworkCallback mCallback = new IMORTServerNetworkCallback.Stub()
-    {
+//    private IMORTServerNetworkCallback mCallback = new IMORTServerNetworkCallback.Stub()
+//    {
+//
+//        @Override
+//        public void onRecevedOperation(final MORTNetworkData data) throws RemoteException {
+//            Log.e(TAG, "onRecevedOperation");
+//            if(data != null){
+//                ControlOperation operation = mGson.fromJson(data.getMessage(), ControlOperation.class);
+//                mDeviceControlLooper.setControlOperation(operation);
+//            }
+//        }
+//
+//        @Override
+//        public void onRecevedDeviceInfo(DeviceInfo data) throws RemoteException {
+//
+//        }
+//    };
 
-        @Override
-        public void onRecevedOperation(final MORTNetworkData data) throws RemoteException {
-            Log.e(TAG, "onRecevedOperation");
-            if(data != null){
-                ControlOperation operation = mGson.fromJson(data.getMessage(), ControlOperation.class);
-                mDeviceControlLooper.setControlOperation(operation);
-            }
-        }
-
-        @Override
-        public void onRecevedDeviceInfo(DeviceInfo data) throws RemoteException {
-
-        }
-    };
-
-    private ServiceConnection mConnNetwork = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            if(service != null){
-                mNetworkService = IMORTServerNetworkService.Stub.asInterface(service);
-                try {
-                    mNetworkService.registerCallback(mCallback);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if(mNetworkService != null){
-                try {
-                    mNetworkService.unregisterCallback(mCallback);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-                mNetworkService = null;
-            }
-        }
-    };
+//    private ServiceConnection mConnNetwork = new ServiceConnection() {
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            if(service != null){
+//                mNetworkService = IMORTServerNetworkService.Stub.asInterface(service);
+//                try {
+//                    mNetworkService.registerCallback(mCallback);
+//                } catch (RemoteException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//            if(mNetworkService != null){
+//                try {
+//                    mNetworkService.unregisterCallback(mCallback);
+//                } catch (RemoteException e) {
+//                    e.printStackTrace();
+//                }
+//                mNetworkService = null;
+//            }
+//        }
+//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +128,7 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
     @Override
     protected void onStart() {
         super.onStart();
-        MORTServerNetworkService.bind(this, mConnNetwork);
+//        MORTServerNetworkService.bind(this, mConnNetwork);
         mCamera = Camera.open(findRearCamera());
         registerSensor();
     }
@@ -132,10 +136,16 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
     @Override
     protected void onStop() {
         super.onStop();
-        MORTServerNetworkService.unbind(this, mConnNetwork);
+//        MORTServerNetworkService.unbind(this, mConnNetwork);
         mScreenTaker.onStopTaker();
         mCamera.release();
         unregisterSensor();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MORTServer.get().unbind();
     }
 
     @Override
@@ -163,6 +173,8 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
         mGson = new Gson();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mGravitySensor =  mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        MORTServer.get().setNetworkMortImplement(this);
+        MORTServer.get().bind();
     }
 
     private void initViews(){
@@ -260,7 +272,7 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(event != null && mNetworkService != null){
+        if(event != null){
             if(event.sensor.getType() == Sensor.TYPE_GRAVITY){
                 MORTNetworkData network = new MORTNetworkData();
                 network.setType(MORTNetworkData.Type.DEVICE);
@@ -282,4 +294,89 @@ public class BaseActivity extends IOIOActivity implements MORTDeviceControlLoope
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
+    @Override
+    public MORTNetworkData getDraftData() {
+        return null;
+    }
+
+    @Override
+    public void onReceiveOperation(Socket socket, MORTNetworkData data) {
+        android.util.Log.e(TAG, "onReceiveOperation = " + data.toString());
+        onOperation(socket, data);
+        if(data != null){
+            ControlOperation operation = mGson.fromJson(data.getMessage(), ControlOperation.class);
+            mDeviceControlLooper.setControlOperation(operation);
+        }
+    }
+
+    @Override
+    public void onReceiveDeviceInfo(Socket socket, MORTNetworkData data) {
+        if(data != null && data.getMessage() != null){
+            android.util.Log.e(TAG, "onReceiveDeviceInfo = " + data.toString());
+            onDeviceInfo(socket, data);
+            DeviceInfo deviceInfo = new DeviceInfo(data);
+        }
+    }
+
+    @Override
+    public void onReceiveConnection(Socket socket, MORTNetworkData data, String serverAddr) {
+        if(socket != null && data != null && data.getConnection() != null){
+            switch(data.getConnection()){
+                case CONNECTED:
+                    addClientAddress(socket.getInetAddress().getHostAddress());
+                    DataOutputStream out = null;
+                    try {
+                        out = new DataOutputStream(socket.getOutputStream());
+                        out.writeUTF(data.convertJson());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
+                case DISCONNECTED:
+                    if(socket != null){
+                        removeClientAddress(socket.getInetAddress().getHostAddress());
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void onDeviceInfo(Socket socket, MORTNetworkData data){
+        if(socket != null && data != null){
+            DataOutputStream out = null;
+            try {
+                out = new DataOutputStream(socket.getOutputStream());
+                out.writeUTF(data.convertJson());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    private void onOperation(Socket socket, final MORTNetworkData data){
+        if(socket != null && data != null){
+            DataOutputStream out = null;
+            try {
+                out = new DataOutputStream(socket.getOutputStream());
+                out.writeUTF(data.convertJson());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    synchronized private void addClientAddress(String ip){
+        MORTDeviceInfoSender.get().registerClientIp(ip);
+    }
+
+    synchronized  private void removeClientAddress(String ip){
+        MORTDeviceInfoSender.get().unregisterClientIp(ip);
+    }
+
 }

@@ -22,7 +22,7 @@ public class BitmapConverter {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.JPEG, compress, stream);
         byte[] byteArray = stream.toByteArray();
-        Log.e(TAG, " BitmapToBase64String : " + byteArray.length );
+//        Log.e(TAG, " BitmapToBase64String : " + byteArray.length );
         String data = Base64.encodeToString(byteArray, Base64.DEFAULT);
         byteArray = null;
         stream.reset();
